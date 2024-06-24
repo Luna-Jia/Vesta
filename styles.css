@@ -1,0 +1,146 @@
+@font-face {
+    font-family: "SF Pro";
+    font-weight: 400;
+    src: url("https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-regular-webfont.woff");
+}
+
+body {
+    font-family: "SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f8f8f8; /* Light grey background */
+    margin: 0;
+}
+
+.sidebar {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #f8f8f8; /* Light grey sidebar */
+    transition: 0.3s;
+    overflow-x: hidden;
+    transform: translateX(-250px);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.open {
+    transform: translateX(0);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    padding-top: 20px; /* Adjust as necessary */
+}
+
+.sidebar .logo {
+    width: 40px; /* Adjust width as needed */
+}
+
+.logo-text {
+    font-size: 25px;
+    color: black;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.sidebar a {
+    padding: 10px 0;
+    padding-left: 25px;
+    text-decoration: none;
+    font-size: 23px;
+    color: rgb(52, 52, 52);
+    display: flex;
+    align-items: center;
+    transition: 0.3s;
+    margin-top: 15px; /* Adjusted to avoid overlapping with the logo */
+}
+
+.sidebar a:hover {
+    background-color: #e6e6e6;
+}
+
+.sidebar a i {
+    margin-right: 10px; /* Space between icon and text */
+}
+
+.sidebar .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    color: black;
+    cursor: pointer;
+}
+
+.main {
+    transition: margin-left .3s;
+    padding: 6px;
+    margin-left: 100px;
+}
+
+.main.shifted {
+    margin-left: 270px;
+}
+
+.open-btn {
+    font-size: 24px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    margin: 15px;
+    position: fixed;
+}
+
+h1 i.material-icons {
+    vertical-align: middle;
+    margin-right: 8px;
+    font-size: 36px; /* Increase font size for the icon */
+}
+
+.divider {
+    border-top: 1px solid #b1aeae;
+    width: 80%; /* Set a fixed width for the divider */
+    margin: 30px auto; /* Center the divider */
+}
+
+.bottom-buttons {
+    margin-top: auto;
+    text-align: center;
+    padding-bottom: 45px; /* Ensure there's space at the bottom */
+}
+
+.bottom-buttons a {
+    display: block;
+    padding: 10px 0;
+    font-size: 18px;
+}
+
+.image-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin: 70px 0;
+}
+
+.image-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: black;
+    font-size: 18px;
+}
+
+.image-button img {
+    width: 135px; /* Adjust size as necessary */
+    height: 110px; /* Adjust size as necessary */
+    margin-bottom: 10px;
+}
+
+.image-button span {
+    text-align: center;
+}

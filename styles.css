@@ -124,6 +124,9 @@ h1 i.material-icons {
     display: flex;
     justify-content: space-around;
     margin: 70px 0;
+    max-width: 1500px; /* Set a maximum width */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .image-button {
@@ -136,8 +139,6 @@ h1 i.material-icons {
 }
 
 .image-button img {
-    width: 135px; /* Adjust size as necessary */
-    height: 110px; /* Adjust size as necessary */
     margin-bottom: 10px;
 }
 

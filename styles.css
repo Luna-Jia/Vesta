@@ -139,6 +139,7 @@ h1 i.material-icons {
 }
 
 .image-button img {
+    width: 90%; /* Scale image to 80% of its original size */
     margin-bottom: 10px;
 }
 

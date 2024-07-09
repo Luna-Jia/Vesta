@@ -77,6 +77,22 @@
                 <div id="map"></div>
             </div>
         </div>
+
+        <!-- Button to render table -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <button onclick="renderTable()" class="btn btn-secondary">Show Data Table</button>
+            </div>
+        </div>
+
+        <!-- Container for the table -->
+        <div class="row">
+            <div class="col-md-12">
+                <div id="tableContainer"></div>
+            </div>
+        </div>
+
+
     </div>
 
     <!-- Bootstrap JS -->
@@ -216,6 +232,46 @@
                 renderColorfulMap(currentGeoJSON);
             }
         });
+
+        // Function to render the table
+        function renderTable() {
+            if (!currentGeoJSON) {
+                alert('Please upload and process a shapefile first.');
+                return;
+            }
+
+            const tableContainer = document.getElementById('tableContainer');
+            const table = document.createElement('table');
+            table.className = 'table table-striped table-hover';
+
+            // Create table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const properties = currentGeoJSON.features[0].properties;
+            for (let prop in properties) {
+                const th = document.createElement('th');
+                th.textContent = prop;
+                headerRow.appendChild(th);
+            }
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Create table body
+            const tbody = document.createElement('tbody');
+            currentGeoJSON.features.forEach(feature => {
+                const row = document.createElement('tr');
+                for (let prop in feature.properties) {
+                    const td = document.createElement('td');
+                    td.textContent = feature.properties[prop];
+                    row.appendChild(td);
+                }
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+
+            tableContainer.innerHTML = '';
+            tableContainer.appendChild(table);
+        }
     </script>
 </body>
 </html>

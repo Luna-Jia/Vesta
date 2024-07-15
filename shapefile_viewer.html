@@ -65,6 +65,7 @@
 
     .main-sidebar a {
         padding: 15px 0;
+        margin-bottom: 10px; /* Added margin between buttons */
         text-decoration: none;
         font-size: 18px;
         color: #e6e5e5;
@@ -147,6 +148,12 @@
         <!-- Hamburger menu icon -->
         <a href="javascript:void(0)" onclick="toggleSecondaryNav()">
             <i class="fas fa-bars"></i>
+        </a>
+        
+        <!-- Data button with icon -->
+        <a href="javascript:void(0)" onclick="showDataOptions()">
+            <img src="assets/dataIcon.png" alt="Data" class="sidebar-icon">
+            <span class="menu-text">Data</span>
         </a>
         
         <!-- Visualizations button with icon -->
@@ -273,6 +280,11 @@
                 secondarySidebar.style.width = "250px";
                 main.style.marginLeft = "310px";
             }
+        }
+
+        function showDataOptions() {
+            console.log("Showing Data Options");
+            // Implement data options functionality
         }
 
         // Function to process the uploaded shapefile

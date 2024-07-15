@@ -45,114 +45,159 @@
             opacity: 0.7;
         }
 
-        /* Styles for the main sidebar */
-        .main-sidebar {
-            height: 100%;
-            width: 60px;
-            position: fixed;
-            z-index: 1000;
-            top: 0;
-            left: 0;
-            background-color: #111;
-            overflow-x: hidden;
-            transition: 0.5s;
-            padding-top: 20px;
-            white-space: nowrap;
-        }
+    /* Styles for the main sidebar */
+    .main-sidebar {
+        height: 100%;
+        width: 60px;
+        position: fixed;
+        z-index: 1000;
+        top: 0;
+        left: 0;
+        background-color: #111;
+        overflow-x: hidden;
+        transition: 0.5s;
+        padding-top: 20px;
+        white-space: nowrap;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-        .main-sidebar a {
-            padding: 15px 0;
-            text-decoration: none;
-            font-size: 18px;
-            color: #e6e5e5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            transition: 0.3s;
-        }
+    .main-sidebar a {
+        padding: 15px 0;
+        text-decoration: none;
+        font-size: 18px;
+        color: #e6e5e5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        transition: 0.3s;
+    }
 
-        .main-sidebar:hover {
-            width: 250px;
-        }
+    .main-sidebar:hover {
+        width: 250px;
+    }
 
-        .main-sidebar:hover a {
-            justify-content: flex-start;
-            padding-left: 32px;
-        }
+    .main-sidebar:hover a {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding-left: 32px;
+    }
 
-        .main-sidebar .fa-bars {
-            font-size: 24px;
-        }
+    .main-sidebar .fa-bars {
+        font-size: 24px;
+    }
 
-        .menu-text {
-            display: none;
-            margin-left: 10px;
-        }
+    .menu-text {
+        display: none;
+        margin-left: 10px;
+    }
 
-        .main-sidebar:hover .menu-text {
-            display: inline;
-        }
+    .main-sidebar:hover .menu-text {
+        display: inline;
+    }
 
-        /* Styles for the secondary sidebar */
-        .secondary-sidebar {
-            height: 100%;
-            width: 0;
-            position: fixed;
-            z-index: 999;
-            top: 0;
-            left: 60px;
-            background-color: #f8f9fa;
-            overflow-x: hidden;
-            transition: 0.5s;
-            padding-top: 25px;
-        }
+    /* Styles for the secondary sidebar */
+    .secondary-sidebar {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        z-index: 999;
+        top: 0;
+        left: 60px;
+        background-color: #f8f9fa;
+        overflow-x: hidden;
+        transition: 0.5s;
+        padding-top: 25px;
+    }
 
-        .secondary-sidebar a {
-            padding: 8px 8px 8px 32px;
-            text-decoration: none;
-            font-size: 18px;
-            color: #818181;
-            display: block;
-            transition: 0.3s;
-        }
+    .secondary-sidebar a {
+        padding: 12px 8px 12px 32px; /* Increased top and bottom padding */
+        margin-bottom: 10px; /* Added margin between buttons */
+        text-decoration: none;
+        font-size: 18px;
+        color: #818181;
+        display: flex;
+        align-items: center;
+        transition: 0.3s;
+    }
 
-        .secondary-sidebar a:hover {
-            color: #111;
-        }
+    .secondary-sidebar a:hover {
+        color: #111;
+    }
 
-        #main {
-            transition: margin-left .5s;
-            padding: 16px;
-            margin-left: 60px;
-        }
+    /* Style for sidebar icons */
+    .sidebar-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 10px;
+    }
 
-        .menu-text {
-            display: none;
-        }
 
-        .main-sidebar:hover .menu-text {
-            display: inline;
-        }
+    /* Style for all icons in the main sidebar to make them white */
+    .main-sidebar .sidebar-icon {
+        filter: brightness(0) invert(1);
+    }
     </style>
 </head>
 <body>
+    <!-- Main sidebar -->
     <div id="mainSidebar" class="main-sidebar">
+        <!-- Hamburger menu icon -->
         <a href="javascript:void(0)" onclick="toggleSecondaryNav()">
             <i class="fas fa-bars"></i>
+        </a>
+        
+        <!-- Visualizations button with icon -->
+        <a href="javascript:void(0)" onclick="toggleSecondaryNav()">
+            <img src="assets/scatterPlotIcon.png" alt="Visualizations" class="sidebar-icon visualizations-icon">
             <span class="menu-text">Visualizations</span>
         </a>
     </div>
 
+    <!-- Secondary sidebar -->
     <div id="secondarySidebar" class="secondary-sidebar">
-        <a href="#" onclick="showMap()">Map</a>
-        <a href="#" onclick="showTable()">Table</a>
-        <a href="#" onclick="showHistogram()">Histogram</a>
-        <a href="#" onclick="showScatterPlot()">Scatter Plot</a>
-        <a href="#" onclick="showCumulativeDistribution()">Cumulative Distribution Plot</a>
-        <a href="#" onclick="showHeatmap()">Heatmap</a>
-        <a href="#" onclick="showBoxPlot()">Box Plot</a>
-        <a href="#" onclick="show3DScatter()">3D Scatter</a>
+        <!-- Map button with icon -->
+        <a href="#" onclick="showMap()">
+            <img src="assets/mapIcon.png" alt="Map" class="sidebar-icon">
+            <span>Map</span>
+        </a>
+        <!-- Table button with icon -->
+        <a href="#" onclick="showTable()">
+            <img src="assets/tableIcon.png" alt="Table" class="sidebar-icon">
+            <span>Table</span>
+        </a>
+        <!-- Histogram button with icon -->
+        <a href="#" onclick="showHistogram()">
+            <img src="assets/histogramIcon.png" alt="Histogram" class="sidebar-icon">
+            <span>Histogram</span>
+        </a>
+        <!-- Scatter Plot button with icon -->
+        <a href="#" onclick="showScatterPlot()">
+            <img src="assets/scatterPlotIcon.png" alt="Scatter Plot" class="sidebar-icon">
+            <span>Scatter Plot</span>
+        </a>
+
+        <a href="#" onclick="showCumulativeDistribution()">
+            <img src="assets/cdPlotIcon.png" alt="Cumulative Distribution Plot" class="sidebar-icon">
+            <span>Cumulative Distribution Plot</span>
+        </a>
+
+        <a href="#" onclick="showHeatmap()">
+            <img src="assets/heatmapIcon.png" alt="Heatmap" class="sidebar-icon">
+            <span>Heatmap</span>
+        </a>
+
+        <a href="#" onclick="showBoxPlot()">
+            <img src="assets/boxPlotIcon.png" alt="Box Plot" class="sidebar-icon">
+            <span>Box Plot</span>
+        </a>
+        
+        <a href="#" onclick="show3DScatter()">
+            <img src="assets/threeDScatterPlotIcon.png" alt="3D Scatter" class="sidebar-icon">
+            <span>3D Scatter</span>
+        </a>
     </div>
 
     <div id="main">

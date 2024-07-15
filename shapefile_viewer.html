@@ -43,60 +43,160 @@
             margin-right: 8px;
             opacity: 0.7;
         }
+
+        /* Styles for the main sidebar */
+        .main-sidebar {
+            height: 100%;
+            width: 60px;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            white-space: nowrap;
+        }
+
+        .main-sidebar:hover {
+            width: 250px;
+        }
+
+        .main-sidebar a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .main-sidebar a:hover {
+            color: #f1f1f1;
+        }
+
+        .main-sidebar .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+
+        /* Styles for the secondary sidebar */
+        .secondary-sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 999;
+            top: 0;
+            left: 60px;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+
+        .secondary-sidebar a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .secondary-sidebar a:hover {
+            color: #111;
+        }
+
+        #main {
+            transition: margin-left .5s;
+            padding: 16px;
+            margin-left: 60px;
+        }
+
+        .menu-text {
+            display: none;
+        }
+
+        .main-sidebar:hover .menu-text {
+            display: inline;
+        }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4">Shapefile Viewer</h1>
-        <div class="row mb-3">
-            <!-- File input for .shp file -->
-            <div class="col-md-4">
-                <label for="shpFile" class="form-label">Select .shp file:</label>
-                <input type="file" class="form-control" id="shpFile" accept=".shp">
-            </div>
-            <!-- File input for .dbf file -->
-            <div class="col-md-4">
-                <label for="dbfFile" class="form-label">Select .dbf file:</label>
-                <input type="file" class="form-control" id="dbfFile" accept=".dbf">
-            </div>
-            <!-- Dropdown for selecting property to display -->
-            <div class="col-md-4">
-                <label for="propertySelect" class="form-label">Select property:</label>
-                <select id="propertySelect" class="form-select"></select>
-            </div>
-        </div>
-        <!-- Button to trigger file processing and map rendering -->
-        <div class="row mb-3">
-            <div class="col-md-12">
-                <button onclick="processShapefile()" class="btn btn-primary">Upload and Render</button>
-            </div>
-        </div>
-        <!-- Container for the map -->
-        <div class="row">
-            <div class="col-md-12">
-                <div id="map"></div>
-            </div>
-        </div>
+    <div id="mainSidebar" class="main-sidebar">
+        <a href="javascript:void(0)" onclick="toggleSecondaryNav()">
+            <i class="fas fa-chart-bar"></i> <span class="menu-text">Visualizations</span>
+        </a>
+    </div>
 
-        <!-- Button to render table -->
-        <div class="row mb-3">
-            <div class="col-md-12">
-                <button onclick="renderTable()" class="btn btn-secondary">Show Data Table</button>
+    <div id="secondarySidebar" class="secondary-sidebar">
+        <a href="#" onclick="showMap()">Map</a>
+        <a href="#" onclick="showTable()">Table</a>
+        <a href="#" onclick="showHistogram()">Histogram</a>
+        <a href="#" onclick="showScatterPlot()">Scatter Plot</a>
+        <a href="#" onclick="showCumulativeDistribution()">Cumulative Distribution Plot</a>
+        <a href="#" onclick="showHeatmap()">Heatmap</a>
+        <a href="#" onclick="showBoxPlot()">Box Plot</a>
+        <a href="#" onclick="show3DScatter()">3D Scatter</a>
+    </div>
+
+    <div id="main">
+        <div class="container mt-5">
+            <h1 class="mb-4">Shapefile Viewer</h1>
+            <div class="row mb-3">
+                <!-- File input for .shp file -->
+                <div class="col-md-4">
+                    <label for="shpFile" class="form-label">Select .shp file:</label>
+                    <input type="file" class="form-control" id="shpFile" accept=".shp">
+                </div>
+                <!-- File input for .dbf file -->
+                <div class="col-md-4">
+                    <label for="dbfFile" class="form-label">Select .dbf file:</label>
+                    <input type="file" class="form-control" id="dbfFile" accept=".dbf">
+                </div>
+                <!-- Dropdown for selecting property to display -->
+                <div class="col-md-4">
+                    <label for="propertySelect" class="form-label">Select property:</label>
+                    <select id="propertySelect" class="form-select"></select>
+                </div>
+            </div>
+            <!-- Button to trigger file processing and map rendering -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <button onclick="processShapefile()" class="btn btn-primary">Upload and Render</button>
+                </div>
+            </div>
+
+            <!-- Container for the map -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            <!-- Button to render table -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <button onclick="renderTable()" class="btn btn-secondary">Show Data Table</button>
+                </div>
+            </div>
+
+            <!-- Container for the table -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="tableContainer"></div>
+                </div>
             </div>
         </div>
-
-        <!-- Container for the table -->
-        <div class="row">
-            <div class="col-md-12">
-                <div id="tableContainer"></div>
-            </div>
-        </div>
-
-
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
     <script>
         // Initialize the map
         let map = L.map('map').setView([0, 0], 2);
@@ -106,6 +206,18 @@
 
         let legend;
         let currentGeoJSON;
+
+        function toggleSecondaryNav() {
+            var secondarySidebar = document.getElementById("secondarySidebar");
+            var main = document.getElementById("main");
+            if (secondarySidebar.style.width === "250px") {
+                secondarySidebar.style.width = "0";
+                main.style.marginLeft = "60px";
+            } else {
+                secondarySidebar.style.width = "250px";
+                main.style.marginLeft = "310px";
+            }
+        }
 
         // Function to process the uploaded shapefile
         function processShapefile() {
@@ -175,17 +287,65 @@
         // Function to render the colorful map
         function renderColorfulMap(geojson) {
             const propertyName = document.getElementById('propertySelect').value;
+
+            // Check if we need to create point features from coordinate columns
+            if (geojson.features[0].geometry && geojson.features[0].geometry.type === 'Point') {
+                // No need for conversion, points are already correctly formatted
+            } else if (geojson.features[0].geometry === null) {
+                let latField = 'Lat', lonField = 'Long';
+                if (geojson.features[0].properties.hasOwnProperty('Y') && 
+                    geojson.features[0].properties.hasOwnProperty('X')) {
+                    latField = 'Y';
+                    lonField = 'X';
+                }
+
+                if (geojson.features[0].properties.hasOwnProperty(latField) && 
+                    geojson.features[0].properties.hasOwnProperty(lonField)) {
+
+                    geojson.features.forEach(feature => {
+                        const lat = parseFloat(feature.properties[latField]);
+                        const lon = parseFloat(feature.properties[lonField]);
+
+                        // Debugging: Log the coordinates
+                        console.log(`Lat: ${lat}, Lon: ${lon}`);
+
+                        // Validate coordinates
+                        if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+                            console.error(`Invalid coordinates for feature: ${feature.properties}`);
+                            return;
+                        }
+
+                        feature.geometry = {
+                            type: "Point",
+                            coordinates: [lon, lat]
+                        };
+                    });
+                } else {
+                    console.error('Cannot find latitude and longitude fields');
+                    alert('Error: Cannot find latitude and longitude fields in the data');
+                    return;
+                }
+            }
+
             const values = geojson.features.map(f => f.properties[propertyName]);
             const min = Math.min(...values);
             const max = Math.max(...values);
 
-            // Remove existing GeoJSON layer if it exists
             if (window.geoJsonLayer) {
                 map.removeLayer(window.geoJsonLayer);
             }
 
-            // Add new GeoJSON layer
             window.geoJsonLayer = L.geoJSON(geojson, {
+                pointToLayer: function(feature, latlng) {
+                    return L.circleMarker(latlng, {
+                        radius: 8,
+                        fillColor: getColor(feature.properties[propertyName], min, max),
+                        color: "#000",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                },
                 style: function(feature) {
                     return {
                         fillColor: getColor(feature.properties[propertyName], min, max),
@@ -204,7 +364,6 @@
                 }
             }).addTo(map);
 
-            // Fit the map to the bounds of the GeoJSON layer
             map.fitBounds(window.geoJsonLayer.getBounds());
 
             // Add or update legend
@@ -271,6 +430,52 @@
 
             tableContainer.innerHTML = '';
             tableContainer.appendChild(table);
+        }
+
+        function showMap() {
+            console.log("Showing Map");
+            // Hide other visualizations and show the map
+            document.getElementById('map').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+            // Add similar lines for other visualization containers when implemented
+        }
+
+        function showTable() {
+            console.log("Showing Table");
+            renderTable();
+            document.getElementById('map').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'block';
+            // Add similar lines for other visualization containers when implemented
+        }
+
+        function showHistogram() {
+            console.log("Showing Histogram");
+            // Implement histogram visualization
+        }
+
+        function showScatterPlot() {
+            console.log("Showing Scatter Plot");
+            // Implement scatter plot visualization
+        }
+
+        function showCumulativeDistribution() {
+            console.log("Showing Cumulative Distribution Plot");
+            // Implement cumulative distribution plot
+        }
+
+        function showHeatmap() {
+            console.log("Showing Heatmap");
+            // Implement heatmap visualization
+        }
+
+        function showBoxPlot() {
+            console.log("Showing Box Plot");
+            // Implement box plot visualization
+        }
+
+        function show3DScatter() {
+            console.log("Showing 3D Scatter");
+            // Implement 3D scatter plot visualization
         }
     </script>
 </body>

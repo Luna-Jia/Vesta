@@ -45,101 +45,131 @@
             opacity: 0.7;
         }
 
-    /* Styles for the main sidebar */
-    .main-sidebar {
-        height: 100%;
-        width: 3%;
-        position: fixed;
-        z-index: 1000;
-        top: 0;
-        left: 0;
-        background-color: #111;
-        overflow-x: hidden;
-        transition: 0.5s;
-        padding-top: 20px;
-        white-space: nowrap;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+        /* Styles for the main sidebar */
+        .main-sidebar {
+            height: 100%;
+            width: 3em; /* Use em instead of px */
+            min-width: 3em; /* Ensure minimum width */
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 1.25em;
+            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    .main-sidebar a {
-        padding: 15px 0;
-        margin-bottom: 10px; /* Added margin between buttons */
-        text-decoration: none;
-        font-size: 18px;
-        color: #e6e5e5;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        transition: 0.3s;
-    }
+        .main-sidebar a {
+            padding: 0.9em 0;
+            margin-bottom: 0.6em;
+            text-decoration: none;
+            font-size: 1.125em;
+            color: #e6e5e5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            transition: 0.3s;
+        }
 
-    .main-sidebar:hover {
-        width: 250px;
-    }
+        /* Style for main sidebar icons */
+        .main-sidebar .sidebar-icon {
+            width: 1.2em; /* Reduced from 1.5em */
+            height: 1.2em; /* Reduced from 1.5em */
+            padding: 0.1em;
+            filter: brightness(0) invert(1); /* This makes the icons white */
+        }
 
-    .main-sidebar:hover a {
-        flex-direction: row;
-        justify-content: flex-start;
-        padding-left: 32px;
-    }
+        .main-sidebar:hover {
+            width: 12em;
+        }
 
-    .main-sidebar .fa-bars {
-        font-size: 24px;
-    }
+        .main-sidebar:hover a {
+            flex-direction: row;
+            justify-content: flex-start;
+            padding-left: 2em;
+        }
 
-    .menu-text {
-        display: none;
-        margin-left: 10px;
-    }
+        .main-sidebar .fa-bars {
+            font-size: 1.5em;
+            padding: 0.125em;
+        }
 
-    .main-sidebar:hover .menu-text {
-        display: inline;
-    }
+        .menu-text {
+            display: none;
+            margin-left: 0.625em;
+        }
 
-    /* Styles for the secondary sidebar */
-    .secondary-sidebar {
-        height: 100%;
-        width: 0;
-        position: fixed;
-        z-index: 999;
-        top: 0;
-        left: 60px;
-        background-color: #f8f9fa;
-        overflow-x: hidden;
-        transition: 0.5s;
-        padding-top: 25px;
-    }
+        .main-sidebar:hover .menu-text {
+            display: inline;
+        }
 
-    .secondary-sidebar a {
-        padding: 12px 8px 12px 32px; /* Increased top and bottom padding */
-        margin-bottom: 10px; /* Added margin between buttons */
-        text-decoration: none;
-        font-size: 18px;
-        color: #818181;
-        display: flex;
-        align-items: center;
-        transition: 0.3s;
-    }
+        /* Styles for the secondary sidebar */
+        .secondary-sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 999;
+            top: 0;
+            left: 3em; /* Adjusted to be adjacent to main sidebar */
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 1.5625em;
+        }
 
-    .secondary-sidebar a:hover {
-        color: #111;
-    }
+        .secondary-sidebar h3 {
+            color: #333;
+            margin-bottom: 1.25em;
+        }
 
-    /* Style for sidebar icons */
-    .sidebar-icon {
-        width: 24px;
-        height: 24px;
-        margin-right: 10px;
-    }
+        .secondary-sidebar a {
+            padding: 0.75em 0.5em 0.1em 0.4em; /* This controls the padding around the anchor elements (buttons) */
+            margin-bottom: 0.1em; /* This controls the space between the buttons */
+            text-decoration: none;
+            font-size: 1.125em;
+            color: #818181;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
 
+        /* Style for secondary sidebar icons */
+        .secondary-sidebar .sidebar-icon {
+            width: 2em; /* This controls the width of the icons */
+            height: 2em; /* This controls the height of the icons */
+            padding: 0.4em; /* This controls the padding around the icons */
+            filter: none; /* This keeps the icons black */
+        }
 
-    /* Style for all icons in the main sidebar to make them white */
-    .main-sidebar .sidebar-icon {
-        filter: brightness(0) invert(1);
-    }
+        /* Style for import section */
+        #importSection {
+            padding-left: 1.25em;
+        }
+
+        /* Style for file input container */
+        #importSection .mb-3 {
+            max-width: 90%;
+        }
+
+        /* Style for file input */
+        .form-control[type="file"] {
+            font-size: 0.875em;
+            height: auto;
+            padding: 0.3em 0.75em;
+            width: 100%;
+        }
+
+        /* Style for file input button */
+        .form-control[type="file"]::file-selector-button {
+            font-size: 0.875em;
+            padding: 0.4em 0.5em;
+        }
     </style>
 </head>
 <body>
@@ -150,19 +180,19 @@
             <i class="fas fa-bars"></i>
         </a>
         
-        <!-- Data button with icon -->
-        <a href="javascript:void(0)" onclick="showDataOptions()">
-            <img src="assets/dataIcon.png" alt="Data" class="sidebar-icon">
-            <span class="menu-text">Data</span>
+        <!-- Import button with icon -->
+        <a href="javascript:void(0)" onclick="showImportOptions()">
+            <img src="assets/dataIcon.png" alt="Import Data" class="sidebar-icon">
+            <span class="menu-text">Import Data</span>
         </a>
         
         <!-- Visualizations button with icon -->
         <a href="javascript:void(0)" onclick="toggleSecondaryNav()">
-            <img src="assets/scatterPlotIcon.png" alt="Visualizations" class="sidebar-icon visualizations-icon">
+            <img src="assets/scatterPlotIcon.png" alt="Visualizations" class="sidebar-icon">
             <span class="menu-text">Visualizations</span>
         </a>
 
-         <!-- Home button with icon -->
+        <!-- Home button with icon -->
         <a href="vestaHome.html">
             <img src="assets/homeIcon.png" alt="Home" class="sidebar-icon">
             <span class="menu-text">Home</span>
@@ -171,6 +201,18 @@
 
     <!-- Secondary sidebar -->
     <div id="secondarySidebar" class="secondary-sidebar">
+        <!-- Import section (initially hidden) -->
+        <div id="importSection" style="display: none;">
+            <div class="mb-3">
+                <label for="shpFile" class="form-label">Select .shp file:</label>
+                <input type="file" class="form-control" id="shpFile" accept=".shp">
+            </div>
+            <div class="mb-3">
+                <label for="dbfFile" class="form-label">Select .dbf file:</label>
+                <input type="file" class="form-control" id="dbfFile" accept=".dbf">
+            </div>
+            <button onclick="processShapefile()" class="btn btn-primary">Upload and Render</button>
+        </div>  
         <!-- Map button with icon -->
         <a href="#" onclick="showMap()">
             <img src="assets/mapIcon.png" alt="Map" class="sidebar-icon">
@@ -215,42 +257,20 @@
 
     <div id="main">
         <div class="container mt-5">
-            <h1 class="mb-4">Shapefile Viewer</h1>
             <div class="row mb-3">
-                <!-- File input for .shp file -->
-                <div class="col-md-4">
-                    <label for="shpFile" class="form-label">Select .shp file:</label>
-                    <input type="file" class="form-control" id="shpFile" accept=".shp">
-                </div>
-                <!-- File input for .dbf file -->
-                <div class="col-md-4">
-                    <label for="dbfFile" class="form-label">Select .dbf file:</label>
-                    <input type="file" class="form-control" id="dbfFile" accept=".dbf">
-                </div>
+
                 <!-- Dropdown for selecting property to display -->
                 <div class="col-md-4">
                     <label for="propertySelect" class="form-label">Select property:</label>
                     <select id="propertySelect" class="form-select"></select>
                 </div>
             </div>
-            <!-- Button to trigger file processing and map rendering -->
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <button onclick="processShapefile()" class="btn btn-primary">Upload and Render</button>
-                </div>
-            </div>
+
 
             <!-- Container for the map -->
             <div class="row">
                 <div class="col-md-12">
                     <div id="map"></div>
-                </div>
-            </div>
-
-            <!-- Button to render table -->
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <button onclick="renderTable()" class="btn btn-secondary">Show Data Table</button>
                 </div>
             </div>
 
@@ -278,19 +298,16 @@
 
         function toggleSecondaryNav() {
             var secondarySidebar = document.getElementById("secondarySidebar");
+            var importSection = document.getElementById("importSection");
             var main = document.getElementById("main");
-            if (secondarySidebar.style.width === "250px") {
+            if (secondarySidebar.style.width === "12em") {
                 secondarySidebar.style.width = "0";
-                main.style.marginLeft = "60px";
+                main.style.marginLeft = "3em";
+                importSection.style.display = "none";  // Hide import section when closing
             } else {
-                secondarySidebar.style.width = "250px";
-                main.style.marginLeft = "310px";
+                secondarySidebar.style.width = "12em";
+                main.style.marginLeft = "15em";  // 3em (main sidebar) + 12em (secondary sidebar)
             }
-        }
-
-        function showDataOptions() {
-            console.log("Showing Data Options");
-            // Implement data options functionality
         }
 
         // Function to process the uploaded shapefile
@@ -550,6 +567,22 @@
         function show3DScatter() {
             console.log("Showing 3D Scatter");
             // Implement 3D scatter plot visualization
+        }
+
+        function showImportOptions() {
+            var secondarySidebar = document.getElementById("secondarySidebar");
+            var importSection = document.getElementById("importSection");
+            var main = document.getElementById("main");
+
+            // Show the secondary sidebar if it's not already visible
+            if (secondarySidebar.style.width !== "12em") {
+                secondarySidebar.style.width = "12em";
+                main.style.marginLeft = "15em"; // Adjusted margin to account for both sidebars
+            }
+
+            // Show the import section and hide other sections
+            importSection.style.display = "block";
+            // Hide other sections here if needed
         }
     </script>
 </body>

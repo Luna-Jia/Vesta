@@ -20,6 +20,7 @@
     <!-- External JS libraries -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/shapefile@0.6.6/dist/shapefile.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         /* Styles for the map container */
         #map { height: 500px; width: 100%; }
@@ -170,6 +171,94 @@
             font-size: 0.875em;
             padding: 0.4em 0.5em;
         }
+
+        #fileVariablesSection {
+            padding: 10px;
+            margin-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .file-toggle {
+            cursor: pointer;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #fileName {
+            font-weight: bold;
+        }
+
+        .variable-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .variable-list li {
+            padding: 3px 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .variable-list li:last-child {
+            border-bottom: none;
+        }
+
+        #workspaces {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 10px 0 10px;
+            background-color: #f8f9fa;
+        }
+
+        .workspace {
+            padding: 5px 10px;
+            margin-right: 5px;
+            background-color: #e9ecef;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+        }
+
+        .workspace.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+        }
+
+        .close-workspace {
+            margin-left: 5px;
+            border: none;
+            background: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        #addWorkspace {
+            padding: 0 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .workspace-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .workspace-content.active {
+            display: block;
+        }
+
+        .map, .histogram {
+            height: 500px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -187,7 +276,7 @@
         </a>
         
         <!-- Visualizations button with icon -->
-        <a href="javascript:void(0)" onclick="toggleSecondaryNav()">
+        <a href="javascript:void(0)" onclick="showVisualizationOptions()">
             <img src="assets/scatterPlotIcon.png" alt="Visualizations" class="sidebar-icon">
             <span class="menu-text">Visualizations</span>
         </a>
@@ -201,7 +290,7 @@
 
     <!-- Secondary sidebar -->
     <div id="secondarySidebar" class="secondary-sidebar">
-        <!-- Import section (initially hidden) -->
+        <!-- Import section -->
         <div id="importSection" style="display: none;">
             <div class="mb-3">
                 <label for="shpFile" class="form-label">Select .shp file:</label>
@@ -213,71 +302,89 @@
             </div>
             <button onclick="processShapefile()" class="btn btn-primary">Upload and Render</button>
         </div>  
-        <!-- Map button with icon -->
-        <a href="#" onclick="showMap()">
-            <img src="assets/mapIcon.png" alt="Map" class="sidebar-icon">
-            <span>Map</span>
-        </a>
-        <!-- Table button with icon -->
-        <a href="#" onclick="showTable()">
-            <img src="assets/tableIcon.png" alt="Table" class="sidebar-icon">
-            <span>Table</span>
-        </a>
-        <!-- Histogram button with icon -->
-        <a href="#" onclick="showHistogram()">
-            <img src="assets/histogramIcon.png" alt="Histogram" class="sidebar-icon">
-            <span>Histogram</span>
-        </a>
-        <!-- Scatter Plot button with icon -->
-        <a href="#" onclick="showScatterPlot()">
-            <img src="assets/scatterPlotIcon.png" alt="Scatter Plot" class="sidebar-icon">
-            <span>Scatter Plot</span>
-        </a>
 
-        <a href="#" onclick="showCumulativeDistribution()">
-            <img src="assets/cdPlotIcon.png" alt="Cumulative Distribution Plot" class="sidebar-icon">
-            <span>Cumulative Distribution Plot</span>
-        </a>
+        <div id="fileVariablesSection" style="display: none;">
+            <div id="fileNameToggle" class="file-toggle">
+                <span id="fileName"></span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <ul id="variableList" class="variable-list"></ul>
+        </div>
 
-        <a href="#" onclick="showHeatmap()">
-            <img src="assets/heatmapIcon.png" alt="Heatmap" class="sidebar-icon">
-            <span>Heatmap</span>
-        </a>
+         <!-- Visualization buttons section -->
+            <div id="visualizationButtons" style="display: none;">
+                <!-- Map button with icon -->
+                <a href="#" onclick="showMap()">
+                    <img src="assets/mapIcon.png" alt="Map" class="sidebar-icon">
+                    <span>Map</span>
+                </a>
+                <!-- Table button with icon -->
+                <a href="#" onclick="showTable()">
+                    <img src="assets/tableIcon.png" alt="Table" class="sidebar-icon">
+                    <span>Table</span>
+                </a>
+                <!-- Histogram button with icon -->
+                <a href="#" onclick="selectHistogramProperty()">
+                    <img src="assets/histogramIcon.png" alt="Histogram" class="sidebar-icon">
+                    <span>Histogram</span>
+                </a>
+                 <!-- Scatter Plot button with icon -->
+                <a href="#" onclick="showScatterPlot()">
+                    <img src="assets/scatterPlotIcon.png" alt="Scatter Plot" class="sidebar-icon">
+                    <span>Scatter Plot</span>
+                </a>
 
-        <a href="#" onclick="showBoxPlot()">
-            <img src="assets/boxPlotIcon.png" alt="Box Plot" class="sidebar-icon">
-            <span>Box Plot</span>
-        </a>
-        
-        <a href="#" onclick="show3DScatter()">
-            <img src="assets/threeDScatterPlotIcon.png" alt="3D Scatter" class="sidebar-icon">
-            <span>3D Scatter</span>
-        </a>
+                <a href="#" onclick="showCumulativeDistribution()">
+                    <img src="assets/cdPlotIcon.png" alt="Cumulative Distribution Plot" class="sidebar-icon">
+                    <span>Cumulative Distribution Plot</span>
+                </a>
+
+                <a href="#" onclick="showHeatmap()">
+                    <img src="assets/heatmapIcon.png" alt="Heatmap" class="sidebar-icon">
+                    <span>Heatmap</span>
+                </a>
+
+                <a href="#" onclick="showBoxPlot()">
+                    <img src="assets/boxPlotIcon.png" alt="Box Plot" class="sidebar-icon">
+                    <span>Box Plot</span>
+                </a>
+                
+                <a href="#" onclick="show3DScatter()">
+                    <img src="assets/threeDScatterPlotIcon.png" alt="3D Scatter" class="sidebar-icon">
+                    <span>3D Scatter</span>
+                </a>
+            </div>
     </div>
 
     <div id="main">
-        <div class="container mt-5">
-            <div class="row mb-3">
-
-                <!-- Dropdown for selecting property to display -->
-                <div class="col-md-4">
-                    <label for="propertySelect" class="form-label">Select property:</label>
-                    <select id="propertySelect" class="form-select"></select>
-                </div>
+        <div id="workspaces">
+            <div class="workspace active" id="workspace1">
+                <span class="workspace-name">Workspace 1</span>
+                <button class="close-workspace">&times;</button>
             </div>
-
-
-            <!-- Container for the map -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div id="map"></div>
+            <button id="addWorkspace">+</button>
+        </div>
+        <div id="workspaceContents">
+            <div class="workspace-content active" id="workspaceContent1">
+                <!-- Content for Workspace 1 -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="propertySelect1" class="form-label">Select property:</label>
+                        <select id="propertySelect1" class="form-select propertySelect"></select>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Container for the table -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div id="tableContainer"></div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="map1" class="map"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="histogram1" class="histogram"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="tableContainer1" class="tableContainer"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -285,13 +392,123 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
     <script>
-        // Initialize the map
-        let map = L.map('map').setView([0, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+
+        function getColor(value, min, max) {
+            const ratio = (value - min) / (max - min);
+            const hue = (1 - ratio) * 60; // 60 for yellow, 0 for red
+            return `hsl(${hue}, 100%, 50%)`;
+        }
+
+        let workspaceCount = 1;
+        let currentWorkspace = 1;
+        let workspaceData = {
+            1: { geojson: null, map: null, histogram: null }
+        };
+
+        function addWorkspace() {
+            workspaceCount++;
+            const newWorkspace = document.createElement('div');
+            newWorkspace.className = 'workspace';
+            newWorkspace.id = `workspace${workspaceCount}`;
+            newWorkspace.innerHTML = `
+                <span class="workspace-name">Workspace ${workspaceCount}</span>
+                <button class="close-workspace">&times;</button>
+            `;
+            document.getElementById('addWorkspace').before(newWorkspace);
+
+            const newContent = document.createElement('div');
+            newContent.className = 'workspace-content';
+            newContent.id = `workspaceContent${workspaceCount}`;
+            newContent.innerHTML = `
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="propertySelect${workspaceCount}" class="form-label">Select property:</label>
+                        <select id="propertySelect${workspaceCount}" class="form-select propertySelect"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="map${workspaceCount}" class="map"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="histogram${workspaceCount}" class="histogram"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="tableContainer${workspaceCount}" class="tableContainer"></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('workspaceContents').appendChild(newContent);
+
+            workspaceData[workspaceCount] = { geojson: null, map: null, histogram: null };
+
+            attachWorkspaceListeners(newWorkspace);
+            switchToWorkspace(workspaceCount).then(() => {
+                // Any additional actions after switching workspace
+            });
+        }
+
+        function switchToWorkspace(workspaceId) {
+            return new Promise((resolve) => {
+                document.querySelectorAll('.workspace').forEach(w => w.classList.remove('active'));
+                document.querySelectorAll('.workspace-content').forEach(w => w.classList.remove('active'));
+                
+                document.getElementById(`workspace${workspaceId}`).classList.add('active');
+                document.getElementById(`workspaceContent${workspaceId}`).classList.add('active');
+                
+                currentWorkspace = workspaceId;
+
+                // Initialize map if it doesn't exist
+                if (!workspaceData[workspaceId].map) {
+                    const mapContainer = document.getElementById(`map${workspaceId}`);
+                    if (mapContainer) {
+                        workspaceData[workspaceId].map = L.map(`map${workspaceId}`).setView([0, 0], 2);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '© OpenStreetMap contributors'
+                        }).addTo(workspaceData[workspaceId].map);
+                    } else {
+                        console.error(`Map container not found for workspace ${workspaceId}`);
+                    }
+                }
+
+                // Use setTimeout to ensure the map is fully initialized
+                setTimeout(() => {
+                    resolve();
+                }, 100);
+            });
+        }
+
+        function attachWorkspaceListeners(workspace) {
+            workspace.addEventListener('click', function() {
+                switchToWorkspace(this.id.replace('workspace', ''));
+            });
+
+            workspace.querySelector('.close-workspace').addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (document.querySelectorAll('.workspace').length > 1) {
+                    const workspaceId = workspace.id.replace('workspace', '');
+                    document.getElementById(`workspaceContent${workspaceId}`).remove();
+                    workspace.remove();
+                    delete workspaceData[workspaceId];
+                    switchToWorkspace(Object.keys(workspaceData)[0]);
+                }
+            });
+
+            workspace.addEventListener('dblclick', function() {
+                const nameSpan = this.querySelector('.workspace-name');
+                const newName = prompt('Enter new workspace name:', nameSpan.textContent);
+                if (newName) {
+                    nameSpan.textContent = newName;
+                }
+            });
+        }
+
+        document.getElementById('addWorkspace').addEventListener('click', addWorkspace);
+        attachWorkspaceListeners(document.getElementById('workspace1'));
 
         let legend;
         let currentGeoJSON;
@@ -310,39 +527,6 @@
             }
         }
 
-        // Function to process the uploaded shapefile
-        function processShapefile() {
-            const shpFile = document.getElementById('shpFile').files[0];
-            const dbfFile = document.getElementById('dbfFile').files[0];
-
-            if (!shpFile || !dbfFile) {
-                alert('Please select both .shp and .dbf files');
-                return;
-            }
-
-            // Read both files and process them
-            Promise.all([
-                readFile(shpFile),
-                readFile(dbfFile)
-            ]).then(([shpBuffer, dbfBuffer]) => {
-                shapefile.read(shpBuffer, dbfBuffer)
-                    .then(geojson => {
-                        console.log('GeoJSON created successfully:', geojson);
-                        currentGeoJSON = geojson;
-                        populatePropertySelect(geojson.features[0].properties);
-                        renderColorfulMap(geojson);
-                    })
-                    .catch(error => {
-                        console.error('Error processing shapefile:', error);
-                        alert('Error processing shapefile. Please check the console for details.');
-                    });
-            }).catch(error => {
-                console.error('Error reading files:', error);
-                alert('Error reading files. Please check the console for details.');
-            });
-        }
-
-        // Function to read a file as ArrayBuffer
         function readFile(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -352,9 +536,72 @@
             });
         }
 
-        // Function to populate the property select dropdown
+        // Modify existing functions to work with multiple workspaces
+        function processShapefile() {
+            const shpFile = document.getElementById('shpFile').files[0];
+            const dbfFile = document.getElementById('dbfFile').files[0];
+
+            if (!shpFile || !dbfFile) {
+                alert('Please select both .shp and .dbf files');
+                return;
+            }
+
+            Promise.all([readFile(shpFile), readFile(dbfFile)])
+                .then(([shpBuffer, dbfBuffer]) => {
+                    shapefile.read(shpBuffer, dbfBuffer)
+                        .then(geojson => {
+                            console.log('GeoJSON created successfully:', geojson);
+                            workspaceData[currentWorkspace].geojson = geojson;
+                            
+                            // Wait for the workspace to be ready before rendering
+                            switchToWorkspace(currentWorkspace).then(() => {
+                                populatePropertySelect(geojson.features[0].properties);
+                                renderColorfulMap(geojson);
+                                populateFileVariablesList(shpFile.name, geojson.features[0].properties);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error processing shapefile:', error);
+                            alert('Error processing shapefile. Please check the console for details.');
+                        });
+                }).catch(error => {
+                    console.error('Error reading files:', error);
+                    alert('Error reading files. Please check the console for details.');
+                });
+        }
+
+        function populateFileVariablesList(fileName, properties) {
+            const fileNameElement = document.getElementById('fileName');
+            const variableList = document.getElementById('variableList');
+            const fileVariablesSection = document.getElementById('fileVariablesSection');
+            const fileNameToggle = document.getElementById('fileNameToggle');
+
+            fileNameElement.textContent = fileName;
+            variableList.innerHTML = '';
+
+            for (let prop in properties) {
+                let li = document.createElement('li');
+                li.textContent = prop;
+                variableList.appendChild(li);
+            }
+
+            fileVariablesSection.style.display = 'block';
+
+            // Add click event to toggle the list
+            fileNameToggle.addEventListener('click', function() {
+                variableList.style.display = variableList.style.display === 'none' ? 'block' : 'none';
+                fileNameToggle.querySelector('i').classList.toggle('fa-chevron-down');
+                fileNameToggle.querySelector('i').classList.toggle('fa-chevron-up');
+            });
+        }
+
+        // Modify the existing populatePropertySelect function
         function populatePropertySelect(properties) {
-            const select = document.getElementById('propertySelect');
+            const select = document.getElementById(`propertySelect${currentWorkspace}`);
+            if (!select) {
+                console.error(`Property select element not found for workspace ${currentWorkspace}`);
+                return;
+            }
             select.innerHTML = '';
             for (let prop in properties) {
                 if (typeof properties[prop] === 'number') {
@@ -364,20 +611,22 @@
                     select.appendChild(option);
                 }
             }
+            select.addEventListener('change', function() {
+                if (workspaceData[currentWorkspace].geojson) {
+                    renderColorfulMap(workspaceData[currentWorkspace].geojson);
+                    if (document.getElementById(`histogram${currentWorkspace}`).style.display === 'block') {
+                        renderHistogram();
+                    }
+                }
+            });
             // Trigger change event to render the map with the first property
             select.dispatchEvent(new Event('change'));
         }
 
-        // Function to get color based on value
-        function getColor(value, min, max) {
-            const ratio = (value - min) / (max - min);
-            const hue = (1 - ratio) * 60; // 60 for yellow, 0 for red
-            return `hsl(${hue}, 100%, 50%)`;
-        }
-
         // Function to render the colorful map
         function renderColorfulMap(geojson) {
-            const propertyName = document.getElementById('propertySelect').value;
+            const propertyName = document.getElementById(`propertySelect${currentWorkspace}`).value;
+            const map = workspaceData[currentWorkspace].map;
 
             // Check if we need to create point features from coordinate columns
             if (geojson.features[0].geometry && geojson.features[0].geometry.type === 'Point') {
@@ -422,11 +671,11 @@
             const min = Math.min(...values);
             const max = Math.max(...values);
 
-            if (window.geoJsonLayer) {
-                map.removeLayer(window.geoJsonLayer);
+            if (workspaceData[currentWorkspace].geoJsonLayer) {
+                map.removeLayer(workspaceData[currentWorkspace].geoJsonLayer);
             }
 
-            window.geoJsonLayer = L.geoJSON(geojson, {
+            workspaceData[currentWorkspace].geoJsonLayer = L.geoJSON(geojson, {
                 pointToLayer: function(feature, latlng) {
                     return L.circleMarker(latlng, {
                         radius: 8,
@@ -455,14 +704,14 @@
                 }
             }).addTo(map);
 
-            map.fitBounds(window.geoJsonLayer.getBounds());
+            map.fitBounds(workspaceData[currentWorkspace].geoJsonLayer.getBounds());
 
             // Add or update legend
-            if (legend) {
-                map.removeControl(legend);
+            if (workspaceData[currentWorkspace].legend) {
+                map.removeControl(workspaceData[currentWorkspace].legend);
             }
-            legend = L.control({position: 'bottomright'});
-            legend.onAdd = function (map) {
+            workspaceData[currentWorkspace].legend = L.control({position: 'bottomright'});
+            workspaceData[currentWorkspace].legend.onAdd = function (map) {
                 const div = L.DomUtil.create('div', 'info legend');
                 const grades = [min, min + (max-min)/4, min + (max-min)/2, min + 3*(max-min)/4, max];
                 div.innerHTML += `<h4>${propertyName}</h4>`;
@@ -473,31 +722,33 @@
                 }
                 return div;
             };
-            legend.addTo(map);
+            workspaceData[currentWorkspace].legend.addTo(map);
         }
-
-        // Event listener for property select change
-        document.getElementById('propertySelect').addEventListener('change', function() {
-            if (currentGeoJSON) {
-                renderColorfulMap(currentGeoJSON);
+        
+        document.addEventListener('change', function(event) {
+            if (event.target && event.target.id.startsWith('propertySelect')) {
+                const workspaceId = event.target.id.replace('propertySelect', '');
+                if (workspaceData[workspaceId] && workspaceData[workspaceId].geojson) {
+                    renderColorfulMap(workspaceData[workspaceId].geojson);
+                }
             }
         });
 
         // Function to render the table
         function renderTable() {
-            if (!currentGeoJSON) {
+            if (!workspaceData[currentWorkspace].geojson) {
                 alert('Please upload and process a shapefile first.');
                 return;
             }
 
-            const tableContainer = document.getElementById('tableContainer');
-            const table = document.createElement('table');
+            const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+            const geojson = workspaceData[currentWorkspace].geojson;
             table.className = 'table table-striped table-hover';
 
             // Create table header
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            const properties = currentGeoJSON.features[0].properties;
+            const properties = geojson.features[0].properties;
             for (let prop in properties) {
                 const th = document.createElement('th');
                 th.textContent = prop;
@@ -508,7 +759,7 @@
 
             // Create table body
             const tbody = document.createElement('tbody');
-            currentGeoJSON.features.forEach(feature => {
+            geojson.features.forEach(feature => {
                 const row = document.createElement('tr');
                 for (let prop in feature.properties) {
                     const td = document.createElement('td');
@@ -523,25 +774,65 @@
             tableContainer.appendChild(table);
         }
 
+        // Modify the showMap function
         function showMap() {
             console.log("Showing Map");
-            // Hide other visualizations and show the map
-            document.getElementById('map').style.display = 'block';
-            document.getElementById('tableContainer').style.display = 'none';
-            // Add similar lines for other visualization containers when implemented
+            document.getElementById(`map${currentWorkspace}`).style.display = 'block';
+            document.getElementById(`histogram${currentWorkspace}`).style.display = 'none';
+            document.getElementById(`tableContainer${currentWorkspace}`).style.display = 'none';
         }
 
         function showTable() {
             console.log("Showing Table");
             renderTable();
-            document.getElementById('map').style.display = 'none';
-            document.getElementById('tableContainer').style.display = 'block';
-            // Add similar lines for other visualization containers when implemented
+            document.getElementById(`map${currentWorkspace}`).style.display = 'none';
+            document.getElementById(`tableContainer${currentWorkspace}`).style.display = 'block';
         }
+
+        // Add this new function to handle property selection for histogram
+        function selectHistogramProperty() {
+            histogramProperty = document.getElementById('propertySelect').value;
+            renderHistogram();
+        }
+
+        let histogramProperty = '';
 
         function showHistogram() {
             console.log("Showing Histogram");
-            // Implement histogram visualization
+            document.getElementById(`map${currentWorkspace}`).style.display = 'block';
+            document.getElementById(`histogram${currentWorkspace}`).style.display = 'block';
+            document.getElementById(`tableContainer${currentWorkspace}`).style.display = 'none';
+            renderHistogram();
+        }
+        function renderHistogram() {
+            if (!workspaceData[currentWorkspace].geojson) {
+                alert('Please upload and process a shapefile first.');
+                return;
+            }
+
+            const geojson = workspaceData[currentWorkspace].geojson;
+            const xProperty = geojson.features[0].properties.hasOwnProperty('ID') ? 'ID' : 
+                            geojson.features[0].properties.hasOwnProperty('Object Id') ? 'Object Id' : 
+                            Object.keys(geojson.features[0].properties)[0];
+
+            const yProperty = document.getElementById(`propertySelect${currentWorkspace}`).value;
+
+            const xValues = geojson.features.map(f => f.properties[xProperty]);
+            const yValues = geojson.features.map(f => f.properties[yProperty]);
+
+            const trace = {
+                x: xValues,
+                y: yValues,
+                type: 'bar'
+            };
+
+            const layout = {
+                title: `Histogram of ${yProperty}`,
+                xaxis: { title: xProperty },
+                yaxis: { title: yProperty }
+            };
+
+            Plotly.newPlot(`histogram${currentWorkspace}`, [trace], layout);
         }
 
         function showScatterPlot() {
@@ -572,6 +863,8 @@
         function showImportOptions() {
             var secondarySidebar = document.getElementById("secondarySidebar");
             var importSection = document.getElementById("importSection");
+            var fileVariablesSection = document.getElementById("fileVariablesSection");
+            var visualizationButtons = document.getElementById("visualizationButtons");
             var main = document.getElementById("main");
 
             // Show the secondary sidebar if it's not already visible
@@ -582,7 +875,27 @@
 
             // Show the import section and hide other sections
             importSection.style.display = "block";
-            // Hide other sections here if needed
+            fileVariablesSection.style.display = "none";
+            visualizationButtons.style.display = "none";
+        }
+
+        function showVisualizationOptions() {
+            var secondarySidebar = document.getElementById("secondarySidebar");
+            var importSection = document.getElementById("importSection");
+            var fileVariablesSection = document.getElementById("fileVariablesSection");
+            var visualizationButtons = document.getElementById("visualizationButtons");
+            var main = document.getElementById("main");
+
+            // Show the secondary sidebar if it's not already visible
+            if (secondarySidebar.style.width !== "12em") {
+                secondarySidebar.style.width = "12em";
+                main.style.marginLeft = "15em";
+            }
+
+            // Show the visualization buttons and hide other sections
+            importSection.style.display = "none";
+            fileVariablesSection.style.display = "none";
+            visualizationButtons.style.display = "block";
         }
     </script>
 </body>

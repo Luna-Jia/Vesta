@@ -208,13 +208,20 @@
             border-bottom: none;
         }
 
+        #main {
+            transition: margin-left 0.5s;
+            margin-left: 3em; /* Width of the closed main sidebar */
+            padding: 20px;
+        }
+
         #workspaces {
             display: flex;
             border-bottom: 1px solid #ddd;
             padding: 10px 10px 0 10px;
             background-color: #f8f9fa;
+            margin-left: -20px; /* Compensate for the main padding */
+            padding-left: 20px; /* Add padding back on the left */
         }
-
         .workspace {
             padding: 5px 10px;
             margin-right: 5px;
@@ -256,10 +263,16 @@
         }
 
         .map, .histogram {
-            height: 500px;
+            height: 400px;
             width: 100%;
         }
+
+        .tableContainer {
+            max-height: 400px;
+            overflow-y: auto;
+        }
     </style>
+    <!--------------------------------------------------------------------------------------->
 </head>
 <body>
     <!-- Main sidebar -->
@@ -369,8 +382,7 @@
                 <!-- Content for Workspace 1 -->
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <label for="propertySelect1" class="form-label">Select property:</label>
-                        <select id="propertySelect1" class="form-select propertySelect"></select>
+                        <div id="propertySelectContainer1"></div>
                     </div>
                 </div>
                 <div class="row">
@@ -381,7 +393,7 @@
                         <div id="histogram1" class="histogram"></div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mt-3">
                     <div class="col-md-12">
                         <div id="tableContainer1" class="tableContainer"></div>
                     </div>
@@ -394,7 +406,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
     <script>
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function getColor(value, min, max) {
             const ratio = (value - min) / (max - min);
             const hue = (1 - ratio) * 60; // 60 for yellow, 0 for red
@@ -406,7 +419,8 @@
         let workspaceData = {
             1: { geojson: null, map: null, histogram: null }
         };
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function addWorkspace() {
             workspaceCount++;
             const newWorkspace = document.createElement('div');
@@ -451,7 +465,8 @@
                 // Any additional actions after switching workspace
             });
         }
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function switchToWorkspace(workspaceId) {
             return new Promise((resolve) => {
                 document.querySelectorAll('.workspace').forEach(w => w.classList.remove('active'));
@@ -481,7 +496,8 @@
                 }, 100);
             });
         }
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function attachWorkspaceListeners(workspace) {
             workspace.addEventListener('click', function() {
                 switchToWorkspace(this.id.replace('workspace', ''));
@@ -519,14 +535,15 @@
             var main = document.getElementById("main");
             if (secondarySidebar.style.width === "12em") {
                 secondarySidebar.style.width = "0";
-                main.style.marginLeft = "3em";
-                importSection.style.display = "none";  // Hide import section when closing
+                main.style.marginLeft = "3em"; // Just the width of the main sidebar
+                importSection.style.display = "none";
             } else {
                 secondarySidebar.style.width = "12em";
-                main.style.marginLeft = "15em";  // 3em (main sidebar) + 12em (secondary sidebar)
+                main.style.marginLeft = "15em"; // 3em (main sidebar) + 12em (secondary sidebar)
             }
         }
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function readFile(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -535,8 +552,8 @@
                 reader.readAsArrayBuffer(file);
             });
         }
-
-        // Modify existing functions to work with multiple workspaces
+// ------------------------------------------------------------------------------------------------------------
+        
         function processShapefile() {
             const shpFile = document.getElementById('shpFile').files[0];
             const dbfFile = document.getElementById('dbfFile').files[0];
@@ -552,13 +569,8 @@
                         .then(geojson => {
                             console.log('GeoJSON created successfully:', geojson);
                             workspaceData[currentWorkspace].geojson = geojson;
-                            
-                            // Wait for the workspace to be ready before rendering
-                            switchToWorkspace(currentWorkspace).then(() => {
-                                populatePropertySelect(geojson.features[0].properties);
-                                renderColorfulMap(geojson);
-                                populateFileVariablesList(shpFile.name, geojson.features[0].properties);
-                            });
+                            populateFileVariablesList(shpFile.name, geojson.features[0].properties);
+                            alert('Files processed successfully. Click on Map button to view.');
                         })
                         .catch(error => {
                             console.error('Error processing shapefile:', error);
@@ -569,7 +581,8 @@
                     alert('Error reading files. Please check the console for details.');
                 });
         }
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function populateFileVariablesList(fileName, properties) {
             const fileNameElement = document.getElementById('fileName');
             const variableList = document.getElementById('variableList');
@@ -594,15 +607,22 @@
                 fileNameToggle.querySelector('i').classList.toggle('fa-chevron-up');
             });
         }
-
-        // Modify the existing populatePropertySelect function
+// ------------------------------------------------------------------------------------------------------------
+        
         function populatePropertySelect(properties) {
-            const select = document.getElementById(`propertySelect${currentWorkspace}`);
-            if (!select) {
-                console.error(`Property select element not found for workspace ${currentWorkspace}`);
-                return;
-            }
-            select.innerHTML = '';
+            const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+            propertySelectContainer.innerHTML = ''; // Clear existing content
+
+            const label = document.createElement('label');
+            label.htmlFor = `propertySelect${currentWorkspace}`;
+            label.className = 'form-label';
+            label.textContent = 'Select map property:';
+            propertySelectContainer.appendChild(label);
+
+            const select = document.createElement('select');
+            select.id = `propertySelect${currentWorkspace}`;
+            select.className = 'form-select propertySelect';
+            
             for (let prop in properties) {
                 if (typeof properties[prop] === 'number') {
                     let option = document.createElement('option');
@@ -611,22 +631,28 @@
                     select.appendChild(option);
                 }
             }
+            
             select.addEventListener('change', function() {
                 if (workspaceData[currentWorkspace].geojson) {
                     renderColorfulMap(workspaceData[currentWorkspace].geojson);
-                    if (document.getElementById(`histogram${currentWorkspace}`).style.display === 'block') {
-                        renderHistogram();
-                    }
                 }
             });
+            
+            propertySelectContainer.appendChild(select);
+
             // Trigger change event to render the map with the first property
             select.dispatchEvent(new Event('change'));
         }
-
+// ------------------------------------------------------------------------------------------------------------
         // Function to render the colorful map
         function renderColorfulMap(geojson) {
             const propertyName = document.getElementById(`propertySelect${currentWorkspace}`).value;
             const map = workspaceData[currentWorkspace].map;
+
+            if (!map) {
+                console.error('Map not initialized for workspace', currentWorkspace);
+                return;
+            }
 
             // Check if we need to create point features from coordinate columns
             if (geojson.features[0].geometry && geojson.features[0].geometry.type === 'Point') {
@@ -733,8 +759,8 @@
                 }
             }
         });
-
-        // Function to render the table
+// ------------------------------------------------------------------------------------------------------------
+        
         function renderTable() {
             if (!workspaceData[currentWorkspace].geojson) {
                 alert('Please upload and process a shapefile first.');
@@ -743,6 +769,9 @@
 
             const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
             const geojson = workspaceData[currentWorkspace].geojson;
+
+            // Create table element
+            const table = document.createElement('table');
             table.className = 'table table-striped table-hover';
 
             // Create table header
@@ -770,40 +799,118 @@
             });
             table.appendChild(tbody);
 
+            // Clear the container and add the new table
             tableContainer.innerHTML = '';
             tableContainer.appendChild(table);
         }
 
-        // Modify the showMap function
+        function showTable() {
+            console.log("Showing Table");
+            if (!workspaceData[currentWorkspace].geojson) {
+                alert('Please upload and process a shapefile first.');
+                return;
+            }
+
+            const mapElement = document.getElementById(`map${currentWorkspace}`);
+            const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+            const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+            const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+
+            // Show the table container without hiding the map
+            tableContainer.style.display = 'block';
+
+            // Keep the map visible
+            mapElement.style.display = 'block';
+
+            // Hide histogram if it's visible
+            histogramElement.style.display = 'none';
+
+            // Keep property select visible for the map
+            propertySelectContainer.style.display = 'block';
+
+            // Render the table
+            renderTable();
+        }
+// ------------------------------------------------------------------------------------------------------------
+        
         function showMap() {
             console.log("Showing Map");
+            if (!workspaceData[currentWorkspace].geojson) {
+                alert('Please upload and process a shapefile first.');
+                return;
+            }
+
             document.getElementById(`map${currentWorkspace}`).style.display = 'block';
             document.getElementById(`histogram${currentWorkspace}`).style.display = 'none';
             document.getElementById(`tableContainer${currentWorkspace}`).style.display = 'none';
-        }
+            
+            const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+            propertySelectContainer.style.display = 'block';
+            
+            // Initialize map if it doesn't exist
+            if (!workspaceData[currentWorkspace].map) {
+                const mapContainer = document.getElementById(`map${currentWorkspace}`);
+                if (mapContainer) {
+                    workspaceData[currentWorkspace].map = L.map(`map${currentWorkspace}`).setView([0, 0], 2);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(workspaceData[currentWorkspace].map);
+                } else {
+                    console.error(`Map container not found for workspace ${currentWorkspace}`);
+                    return;
+                }
+            }
 
-        function showTable() {
-            console.log("Showing Table");
-            renderTable();
-            document.getElementById(`map${currentWorkspace}`).style.display = 'none';
-            document.getElementById(`tableContainer${currentWorkspace}`).style.display = 'block';
-        }
+            // Populate property select if it hasn't been done yet
+            if (propertySelectContainer.children.length === 0) {
+                populatePropertySelect(workspaceData[currentWorkspace].geojson.features[0].properties);
+            }
 
-        // Add this new function to handle property selection for histogram
+            // Render the map
+            renderColorfulMap(workspaceData[currentWorkspace].geojson);
+
+            // Invalidate map size to ensure proper rendering
+            setTimeout(() => {
+                workspaceData[currentWorkspace].map.invalidateSize();
+            }, 100);
+        }
+// ------------------------------------------------------------------------------------------------------------
+
         function selectHistogramProperty() {
-            histogramProperty = document.getElementById('propertySelect').value;
+            console.log("Showing Histogram");
+            if (!workspaceData[currentWorkspace].geojson) {
+                alert('Please upload and process a shapefile first.');
+                return;
+            }
+
+            const mapElement = document.getElementById(`map${currentWorkspace}`);
+            const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+            const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+            const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+
+            // Show all elements
+            mapElement.style.display = 'block';
+            histogramElement.style.display = 'block';
+            tableContainer.style.display = 'block';
+            propertySelectContainer.style.display = 'block';
+
+            // Render the histogram
             renderHistogram();
         }
 
+        
+// ------------------------------------------------------------------------------------------------------------
         let histogramProperty = '';
-
         function showHistogram() {
             console.log("Showing Histogram");
-            document.getElementById(`map${currentWorkspace}`).style.display = 'block';
+            document.getElementById(`map${currentWorkspace}`).style.display = 'none';
             document.getElementById(`histogram${currentWorkspace}`).style.display = 'block';
             document.getElementById(`tableContainer${currentWorkspace}`).style.display = 'none';
+            document.getElementById(`propertySelectContainer${currentWorkspace}`).style.display = 'none';
             renderHistogram();
         }
+// ------------------------------------------------------------------------------------------------------------
+        
         function renderHistogram() {
             if (!workspaceData[currentWorkspace].geojson) {
                 alert('Please upload and process a shapefile first.');
@@ -811,11 +918,17 @@
             }
 
             const geojson = workspaceData[currentWorkspace].geojson;
+            const propertySelect = document.getElementById(`propertySelect${currentWorkspace}`);
+            
+            if (!propertySelect) {
+                console.error('Property select not found');
+                return;
+            }
+
+            const yProperty = propertySelect.value;
             const xProperty = geojson.features[0].properties.hasOwnProperty('ID') ? 'ID' : 
                             geojson.features[0].properties.hasOwnProperty('Object Id') ? 'Object Id' : 
                             Object.keys(geojson.features[0].properties)[0];
-
-            const yProperty = document.getElementById(`propertySelect${currentWorkspace}`).value;
 
             const xValues = geojson.features.map(f => f.properties[xProperty]);
             const yValues = geojson.features.map(f => f.properties[yProperty]);
@@ -834,7 +947,8 @@
 
             Plotly.newPlot(`histogram${currentWorkspace}`, [trace], layout);
         }
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function showScatterPlot() {
             console.log("Showing Scatter Plot");
             // Implement scatter plot visualization
@@ -859,7 +973,8 @@
             console.log("Showing 3D Scatter");
             // Implement 3D scatter plot visualization
         }
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function showImportOptions() {
             var secondarySidebar = document.getElementById("secondarySidebar");
             var importSection = document.getElementById("importSection");
@@ -878,7 +993,8 @@
             fileVariablesSection.style.display = "none";
             visualizationButtons.style.display = "none";
         }
-
+// ------------------------------------------------------------------------------------------------------------
+        
         function showVisualizationOptions() {
             var secondarySidebar = document.getElementById("secondarySidebar");
             var importSection = document.getElementById("importSection");
@@ -897,6 +1013,7 @@
             fileVariablesSection.style.display = "none";
             visualizationButtons.style.display = "block";
         }
+
     </script>
 </body>
 </html>

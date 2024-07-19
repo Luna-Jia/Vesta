@@ -208,13 +208,20 @@
             border-bottom: none;
         }
 
+        #main {
+            transition: margin-left 0.5s;
+            margin-left: 3em; /* Width of the closed main sidebar */
+            padding: 20px;
+        }
+
         #workspaces {
             display: flex;
             border-bottom: 1px solid #ddd;
             padding: 10px 10px 0 10px;
             background-color: #f8f9fa;
+            margin-left: -20px; /* Compensate for the main padding */
+            padding-left: 20px; /* Add padding back on the left */
         }
-
         .workspace {
             padding: 5px 10px;
             margin-right: 5px;
@@ -519,11 +526,11 @@
             var main = document.getElementById("main");
             if (secondarySidebar.style.width === "12em") {
                 secondarySidebar.style.width = "0";
-                main.style.marginLeft = "3em";
-                importSection.style.display = "none";  // Hide import section when closing
+                main.style.marginLeft = "3em"; // Just the width of the main sidebar
+                importSection.style.display = "none";
             } else {
                 secondarySidebar.style.width = "12em";
-                main.style.marginLeft = "15em";  // 3em (main sidebar) + 12em (secondary sidebar)
+                main.style.marginLeft = "15em"; // 3em (main sidebar) + 12em (secondary sidebar)
             }
         }
 

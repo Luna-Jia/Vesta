@@ -263,7 +263,7 @@
         }
 
         .map, .histogram {
-            height: 500px;
+            height: 400px;
             width: 100%;
         }
 
@@ -876,15 +876,31 @@
         }
 // ------------------------------------------------------------------------------------------------------------
 
-        // Add this new function to handle property selection for histogram
         function selectHistogramProperty() {
-            histogramProperty = document.getElementById('propertySelect').value;
+            console.log("Showing Histogram");
+            if (!workspaceData[currentWorkspace].geojson) {
+                alert('Please upload and process a shapefile first.');
+                return;
+            }
+
+            const mapElement = document.getElementById(`map${currentWorkspace}`);
+            const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+            const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+            const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+
+            // Show all elements
+            mapElement.style.display = 'block';
+            histogramElement.style.display = 'block';
+            tableContainer.style.display = 'block';
+            propertySelectContainer.style.display = 'block';
+
+            // Render the histogram
             renderHistogram();
         }
 
-        let histogramProperty = '';
-// ------------------------------------------------------------------------------------------------------------
         
+// ------------------------------------------------------------------------------------------------------------
+        let histogramProperty = '';
         function showHistogram() {
             console.log("Showing Histogram");
             document.getElementById(`map${currentWorkspace}`).style.display = 'none';
@@ -902,11 +918,17 @@
             }
 
             const geojson = workspaceData[currentWorkspace].geojson;
+            const propertySelect = document.getElementById(`propertySelect${currentWorkspace}`);
+            
+            if (!propertySelect) {
+                console.error('Property select not found');
+                return;
+            }
+
+            const yProperty = propertySelect.value;
             const xProperty = geojson.features[0].properties.hasOwnProperty('ID') ? 'ID' : 
                             geojson.features[0].properties.hasOwnProperty('Object Id') ? 'Object Id' : 
                             Object.keys(geojson.features[0].properties)[0];
-
-            const yProperty = document.getElementById(`propertySelect${currentWorkspace}`).value;
 
             const xValues = geojson.features.map(f => f.properties[xProperty]);
             const yValues = geojson.features.map(f => f.properties[yProperty]);

@@ -1,0 +1,249 @@
+/* Styles for the map container */
+#map { height: 500px; width: 100%; }
+/* Styles for the legend */
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+.info h4 { margin: 0 0 5px; color: #777; }
+.legend {
+    line-height: 18px;
+    color: #555;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+
+/* Styles for the main sidebar */
+.main-sidebar {
+    height: 100%;
+    width: 3em; /* Use em instead of px */
+    min-width: 3em; /* Ensure minimum width */
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 1.25em;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.main-sidebar a {
+    padding: 0.9em 0;
+    margin-bottom: 0.6em;
+    text-decoration: none;
+    font-size: 1.125em;
+    color: #e6e5e5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    transition: 0.3s;
+}
+
+/* Style for main sidebar icons */
+.main-sidebar .sidebar-icon {
+    width: 1.2em; /* Reduced from 1.5em */
+    height: 1.2em; /* Reduced from 1.5em */
+    padding: 0.1em;
+    filter: brightness(0) invert(1); /* This makes the icons white */
+}
+
+.main-sidebar:hover {
+    width: 12em;
+}
+
+.main-sidebar:hover a {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding-left: 2em;
+}
+
+.main-sidebar .fa-bars {
+    font-size: 1.5em;
+    padding: 0.125em;
+}
+
+.menu-text {
+    display: none;
+    margin-left: 0.625em;
+}
+
+.main-sidebar:hover .menu-text {
+    display: inline;
+}
+
+/* Styles for the secondary sidebar */
+.secondary-sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 3em; /* Adjusted to be adjacent to main sidebar */
+    background-color: #f8f9fa;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 1.5625em;
+}
+
+.secondary-sidebar h3 {
+    color: #333;
+    margin-bottom: 1.25em;
+}
+
+.secondary-sidebar a {
+    padding: 0.75em 0.5em 0.1em 0.4em; /* This controls the padding around the anchor elements (buttons) */
+    margin-bottom: 0.1em; /* This controls the space between the buttons */
+    text-decoration: none;
+    font-size: 1.125em;
+    color: #818181;
+    display: flex;
+    align-items: center;
+    transition: 0.3s;
+}
+
+/* Style for secondary sidebar icons */
+.secondary-sidebar .sidebar-icon {
+    width: 2em; /* This controls the width of the icons */
+    height: 2em; /* This controls the height of the icons */
+    padding: 0.4em; /* This controls the padding around the icons */
+    filter: none; /* This keeps the icons black */
+}
+
+/* Style for import section */
+#importSection {
+    padding-left: 1.25em;
+}
+
+/* Style for file input container */
+#importSection .mb-3 {
+    max-width: 90%;
+}
+
+/* Style for file input */
+.form-control[type="file"] {
+    font-size: 0.875em;
+    height: auto;
+    padding: 0.3em 0.75em;
+    width: 100%;
+}
+
+/* Style for file input button */
+.form-control[type="file"]::file-selector-button {
+    font-size: 0.875em;
+    padding: 0.4em 0.5em;
+}
+
+#fileVariablesSection {
+    padding: 10px;
+    margin-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.file-toggle {
+    cursor: pointer;
+    padding: 5px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#fileName {
+    font-weight: bold;
+}
+
+.variable-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 5px;
+    display: none;
+}
+
+.variable-list li {
+    padding: 3px 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.variable-list li:last-child {
+    border-bottom: none;
+}
+
+#main {
+    transition: margin-left 0.5s;
+    margin-left: 3em; /* Width of the closed main sidebar */
+    padding: 20px;
+}
+
+#workspaces {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 10px 0 10px;
+    background-color: #f8f9fa;
+    margin-left: -20px; /* Compensate for the main padding */
+    padding-left: 20px; /* Add padding back on the left */
+}
+.workspace {
+    padding: 5px 10px;
+    margin-right: 5px;
+    background-color: #e9ecef;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+}
+
+.workspace.active {
+    background-color: #fff;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+}
+
+.close-workspace {
+    margin-left: 5px;
+    border: none;
+    background: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+#addWorkspace {
+    padding: 0 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+.workspace-content {
+    display: none;
+    padding: 20px;
+}
+
+.workspace-content.active {
+    display: block;
+}
+
+.map, .histogram {
+    height: 400px;
+    width: 100%;
+}
+
+.tableContainer {
+    max-height: 400px;
+    overflow-y: auto;
+}

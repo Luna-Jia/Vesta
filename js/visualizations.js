@@ -277,26 +277,213 @@ function renderHistogram() {
 }
 
 function showScatterPlot() {
-    console.log("Showing Scatter Plot");
-    // Implement scatter plot visualization
+    const geojson = workspaceData[currentWorkspace].geojson;
+    if (!geojson) {
+        alert('Please import data first.');
+        return;
+    }
+
+    const properties = geojson.features[0].properties;
+    const numericProperties = Object.keys(properties).filter(prop => typeof properties[prop] === 'number');
+
+    if (numericProperties.length < 2) {
+        alert('At least two numeric properties are required for a scatter plot.');
+        return;
+    }
+
+    // Create property selection dropdowns
+    const xProperty = prompt('Select X-axis property:', numericProperties.join(', '));
+    const yProperty = prompt('Select Y-axis property:', numericProperties.join(', '));
+
+    if (!xProperty || !yProperty) return;
+
+    const data = geojson.features.map(feature => ({
+        x: feature.properties[xProperty],
+        y: feature.properties[yProperty]
+    }));
+
+    const layout = {
+        title: `Scatter Plot: ${xProperty} vs ${yProperty}`,
+        xaxis: { title: xProperty },
+        yaxis: { title: yProperty }
+    };
+
+    Plotly.newPlot(`histogram${currentWorkspace}`, [{
+        type: 'scatter',
+        mode: 'markers',
+        x: data.map(d => d.x),
+        y: data.map(d => d.y)
+    }], layout);
+
+    Plotly.newPlot(`histogram${currentWorkspace}`, [{
+        type: 'scatter',
+        mode: 'markers',
+        x: data.map(d => d.x),
+        y: data.map(d => d.y)
+    }], layout).then(optimizePlotlyCanvases);
 }
 
 function showCumulativeDistribution() {
-    console.log("Showing Cumulative Distribution Plot");
-    // Implement cumulative distribution plot
+    const geojson = workspaceData[currentWorkspace].geojson;
+    if (!geojson) {
+        alert('Please import data first.');
+        return;
+    }
+
+    const properties = geojson.features[0].properties;
+    const numericProperties = Object.keys(properties).filter(prop => typeof properties[prop] === 'number');
+
+    if (numericProperties.length === 0) {
+        alert('No numeric properties found for cumulative distribution plot.');
+        return;
+    }
+
+    const property = prompt('Select property for cumulative distribution:', numericProperties.join(', '));
+    if (!property) return;
+
+    const values = geojson.features.map(feature => feature.properties[property]).sort((a, b) => a - b);
+    const cdf = values.map((_, index) => (index + 1) / values.length);
+
+    const layout = {
+        title: `Cumulative Distribution: ${property}`,
+        xaxis: { title: property },
+        yaxis: { title: 'Cumulative Probability' }
+    };
+
+    Plotly.newPlot(`histogram${currentWorkspace}`, [{
+        x: values,
+        y: cdf,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'CDF'
+    }], layout);
+
+    Plotly.newPlot(`histogram${currentWorkspace}`, [{
+        x: values,
+        y: cdf,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'CDF'
+    }], layout).then(optimizePlotlyCanvases);
 }
 
 function showHeatmap() {
-    console.log("Showing Heatmap");
-    // Implement heatmap visualization
+    const geojson = workspaceData[currentWorkspace].geojson;
+    if (!geojson) {
+        alert('Please import data first.');
+        return;
+    }
+
+    const properties = geojson.features[0].properties;
+    const numericProperties = Object.keys(properties).filter(prop => typeof properties[prop] === 'number');
+
+    if (numericProperties.length < 2) {
+        alert('At least two numeric properties are required for a heatmap.');
+        return;
+    }
+
+    const data = numericProperties.map(prop => 
+        geojson.features.map(feature => feature.properties[prop])
+    );
+
+    const layout = {
+        title: 'Heatmap of Numeric Properties',
+        xaxis: { title: 'Properties' },
+        yaxis: { title: 'Features' }
+    };
+
+    Plotly.newPlot(`histogram${currentWorkspace}`, [{
+        z: data,
+        type: 'heatmap',
+        x: numericProperties,
+        y: geojson.features.map((_, index) => `Feature ${index + 1}`)
+    }], layout);
+
+    Plotly.newPlot(`histogram${currentWorkspace}`, [{
+        z: data,
+        type: 'heatmap',
+        x: numericProperties,
+        y: geojson.features.map((_, index) => `Feature ${index + 1}`)
+    }], layout).then(optimizePlotlyCanvases);
 }
 
 function showBoxPlot() {
-    console.log("Showing Box Plot");
-    // Implement box plot visualization
+    const geojson = workspaceData[currentWorkspace].geojson;
+    if (!geojson) {
+        alert('Please import data first.');
+        return;
+    }
+
+    const properties = geojson.features[0].properties;
+    const numericProperties = Object.keys(properties).filter(prop => typeof properties[prop] === 'number');
+
+    if (numericProperties.length === 0) {
+        alert('No numeric properties found for box plot.');
+        return;
+    }
+
+    const data = numericProperties.map(prop => ({
+        y: geojson.features.map(feature => feature.properties[prop]),
+        type: 'box',
+        name: prop
+    }));
+
+    const layout = {
+        title: 'Box Plot of Numeric Properties',
+        yaxis: { title: 'Values' }
+    };
+
+    Plotly.newPlot(`histogram${currentWorkspace}`, data, layout).then(optimizePlotlyCanvases);
 }
 
 function show3DScatter() {
-    console.log("Showing 3D Scatter");
-    // Implement 3D scatter plot visualization
+    const geojson = workspaceData[currentWorkspace].geojson;
+    if (!geojson) {
+        alert('Please import data first.');
+        return;
+    }
+
+    const properties = geojson.features[0].properties;
+    const numericProperties = Object.keys(properties).filter(prop => typeof properties[prop] === 'number');
+
+    if (numericProperties.length < 3) {
+        alert('At least three numeric properties are required for a 3D scatter plot.');
+        return;
+    }
+
+    const xProperty = prompt('Select X-axis property:', numericProperties.join(', '));
+    const yProperty = prompt('Select Y-axis property:', numericProperties.join(', '));
+    const zProperty = prompt('Select Z-axis property:', numericProperties.join(', '));
+
+    if (!xProperty || !yProperty || !zProperty) return;
+
+    const data = [{
+        x: geojson.features.map(feature => feature.properties[xProperty]),
+        y: geojson.features.map(feature => feature.properties[yProperty]),
+        z: geojson.features.map(feature => feature.properties[zProperty]),
+        mode: 'markers',
+        type: 'scatter3d',
+        marker: { size: 5 }
+    }];
+
+    const layout = {
+        title: '3D Scatter Plot',
+        scene: {
+            xaxis: { title: xProperty },
+            yaxis: { title: yProperty },
+            zaxis: { title: zProperty }
+        }
+    };
+
+    Plotly.newPlot(`histogram${currentWorkspace}`, data, layout).then(optimizePlotlyCanvases);
+}
+
+function optimizePlotlyCanvases() {
+    // Select all canvas elements within Plotly containers
+    const canvases = document.querySelectorAll('.plotly-graph-div canvas');
+    
+    // Set willReadFrequently attribute to true for each canvas
+    canvases.forEach(canvas => {
+        canvas.willReadFrequently = true;
+    });
 }

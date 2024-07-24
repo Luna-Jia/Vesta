@@ -1,21 +1,3 @@
-function handlePolygonClick(layer) {
-    // Reset all polygons to their original color
-    workspaceData[currentWorkspace].geoJsonLayer.eachLayer(function (l) {
-        l.setStyle({
-            fillColor: getColor(l.feature.properties[document.getElementById(`propertySelect${currentWorkspace}`).value], 
-                                workspaceData[currentWorkspace].min, 
-                                workspaceData[currentWorkspace].max),
-            color: 'white'
-        });
-    });
-
-    // Change the clicked polygon to purple
-    layer.setStyle({
-        fillColor: 'purple',
-        color: 'purple'
-    });
-}
-
 function renderColorfulMap(geojson) {
     const propertyName = document.getElementById(`propertySelect${currentWorkspace}`).value;
     const map = workspaceData[currentWorkspace].map;
@@ -157,8 +139,9 @@ function renderTable() {
 
     // Create table body
     const tbody = document.createElement('tbody');
-    geojson.features.forEach(feature => {
+    geojson.features.forEach((feature, index) => {
         const row = document.createElement('tr');
+        row.id = `row-${index}`; // Add an id to each row
         for (let prop in feature.properties) {
             const td = document.createElement('td');
             td.textContent = feature.properties[prop];

@@ -247,3 +247,8 @@
     max-height: 400px;
     overflow-y: auto;
 }
+
+.highlighted-row {
+    background-color: #e6e6fa !important; /* Light purple */
+    font-weight: bold;
+}

@@ -5,6 +5,17 @@ let workspaceData = {
     1: { geojson: null, map: null, histogram: null }
 };
 
+function addHighlightedRowStyle() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .highlighted-row {
+            background-color: #e6e6fa !important; /* Light purple */
+            font-weight: bold;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 function getColor(value, min, max) {
     const ratio = (value - min) / (max - min);
     const hue = (1 - ratio) * 60; // 60 for yellow, 0 for red
@@ -50,7 +61,7 @@ function processShapefile() {
                     console.log('GeoJSON created successfully:', geojson);
                     workspaceData[currentWorkspace].geojson = geojson;
                     populateFileVariablesList(shpFile.name, geojson.features[0].properties);
-                    alert('Files processed successfully. Click on Map button to view.');
+                    alert('Files processed successfully. Click on Visualizations button to view.');
                 })
                 .catch(error => {
                     console.error('Error processing shapefile:', error);
@@ -124,3 +135,68 @@ function showVisualizationOptions() {
     fileVariablesSection.style.display = "none";
     visualizationButtons.style.display = "block";
 }
+
+function handlePolygonClick(layer) {
+    // Reset all polygons to their original color
+    workspaceData[currentWorkspace].geoJsonLayer.eachLayer(function (l) {
+        l.setStyle({
+            fillColor: getColor(l.feature.properties[document.getElementById(`propertySelect${currentWorkspace}`).value], 
+                                workspaceData[currentWorkspace].min, 
+                                workspaceData[currentWorkspace].max),
+            color: 'white'
+        });
+    });
+
+    // Change the clicked polygon to purple
+    layer.setStyle({
+        fillColor: 'purple',
+        color: 'purple'
+    });
+
+    // Get the ObjectId of the selected polygon
+    const objectId = layer.feature.properties.ObjectId;
+    console.log("Selected polygon ObjectId:", objectId);
+
+    // Highlight the corresponding row in the table
+    highlightTableRow(objectId);
+}
+
+function highlightTableRow(objectId) {
+    const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+    const table = tableContainer.querySelector('table');
+    if (!table) {
+        console.error("Table not found in container");
+        return;
+    }
+
+    const tbody = table.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
+
+    console.log("Number of rows in table:", rows.length);
+
+    // Remove highlight from all rows
+    rows.forEach(row => row.classList.remove('highlighted-row'));
+
+    // Find the matching row and highlight it
+    let matchFound = false;
+    rows.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        const rowObjectId = cells[0].textContent; // Assuming ObjectId is in the first column
+        if (rowObjectId === objectId.toString()) {
+            console.log("Match found at row:", index);
+            row.classList.add('highlighted-row');
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            matchFound = true;
+        }
+    });
+
+    if (!matchFound) {
+        console.error("No matching row found for ObjectId:", objectId);
+    }
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    addHighlightedRowStyle();
+    // Any other initialization code you might have
+});

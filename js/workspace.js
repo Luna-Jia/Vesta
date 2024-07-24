@@ -14,15 +14,12 @@ function addWorkspace() {
     newContent.id = `workspaceContent${workspaceCount}`;
     newContent.innerHTML = `
         <div class="row mb-3">
-            <div class="col-md-4">
-                <label for="propertySelect${workspaceCount}" class="form-label">Select map property:</label>
-                <select id="propertySelect${workspaceCount}" class="form-select propertySelect"></select>
+            <div class="col-md-6">
+                <div id="propertySelectContainer${workspaceCount}"></div>
             </div>
-            <div class="col-md-4">
-                <label for="histogramPropertySelect${workspaceCount}" class="form-label">Select histogram property:</label>
-                <select id="histogramPropertySelect${workspaceCount}" class="form-select histogramPropertySelect"></select>
+            <div class="col-md-6">
+                <div id="histogramPropertySelectContainer${workspaceCount}"></div>
             </div>
-        </div>
         </div>
         <div class="row">
             <div class="col-md-6">
@@ -32,7 +29,7 @@ function addWorkspace() {
                 <div id="histogram${workspaceCount}" class="histogram"></div>
             </div>
         </div>
-        <div class="row">
+        <div class="row mt-3">
             <div class="col-md-12">
                 <div id="tableContainer${workspaceCount}" class="tableContainer"></div>
             </div>
@@ -131,6 +128,7 @@ function populatePropertySelect(properties) {
     histogramSelect.id = `histogramPropertySelect${currentWorkspace}`;
     histogramSelect.className = 'form-select histogramPropertySelect';
 
+    // Populate both selects
     for (let prop in properties) {
         if (typeof properties[prop] === 'number') {
             let mapOption = document.createElement('option');
@@ -145,6 +143,7 @@ function populatePropertySelect(properties) {
         }
     }
 
+    // Add event listeners
     mapSelect.addEventListener('change', function() {
         if (workspaceData[currentWorkspace].geojson) {
             renderColorfulMap(workspaceData[currentWorkspace].geojson);

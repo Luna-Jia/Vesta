@@ -1,3 +1,21 @@
+function handlePolygonClick(layer) {
+    // Reset all polygons to their original color
+    workspaceData[currentWorkspace].geoJsonLayer.eachLayer(function (l) {
+        l.setStyle({
+            fillColor: getColor(l.feature.properties[document.getElementById(`propertySelect${currentWorkspace}`).value], 
+                                workspaceData[currentWorkspace].min, 
+                                workspaceData[currentWorkspace].max),
+            color: 'white'
+        });
+    });
+
+    // Change the clicked polygon to purple
+    layer.setStyle({
+        fillColor: 'purple',
+        color: 'purple'
+    });
+}
+
 function renderColorfulMap(geojson) {
     const propertyName = document.getElementById(`propertySelect${currentWorkspace}`).value;
     const map = workspaceData[currentWorkspace].map;
@@ -50,6 +68,10 @@ function renderColorfulMap(geojson) {
     const min = Math.min(...values);
     const max = Math.max(...values);
 
+    // Store min and max values in workspaceData
+    workspaceData[currentWorkspace].min = min;
+    workspaceData[currentWorkspace].max = max;
+
     if (workspaceData[currentWorkspace].geoJsonLayer) {
         map.removeLayer(workspaceData[currentWorkspace].geoJsonLayer);
     }
@@ -80,6 +102,10 @@ function renderColorfulMap(geojson) {
                     `<strong>${key}:</strong> ${feature.properties[key]}`
                 ).join('<br>'));
             }
+            // Add click event to change color
+            layer.on('click', function() {
+                handlePolygonClick(this);
+            });
         }
     }).addTo(map);
 

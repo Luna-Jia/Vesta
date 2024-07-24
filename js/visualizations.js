@@ -1,3 +1,21 @@
+function handlePolygonClick(layer) {
+    // Reset all polygons to their original color
+    workspaceData[currentWorkspace].geoJsonLayer.eachLayer(function (l) {
+        l.setStyle({
+            fillColor: getColor(l.feature.properties[document.getElementById(`propertySelect${currentWorkspace}`).value], 
+                                workspaceData[currentWorkspace].min, 
+                                workspaceData[currentWorkspace].max),
+            color: 'white'
+        });
+    });
+
+    // Change the clicked polygon to purple
+    layer.setStyle({
+        fillColor: 'purple',
+        color: 'purple'
+    });
+}
+
 function renderColorfulMap(geojson) {
     const propertyName = document.getElementById(`propertySelect${currentWorkspace}`).value;
     const map = workspaceData[currentWorkspace].map;
@@ -50,6 +68,10 @@ function renderColorfulMap(geojson) {
     const min = Math.min(...values);
     const max = Math.max(...values);
 
+    // Store min and max values in workspaceData
+    workspaceData[currentWorkspace].min = min;
+    workspaceData[currentWorkspace].max = max;
+
     if (workspaceData[currentWorkspace].geoJsonLayer) {
         map.removeLayer(workspaceData[currentWorkspace].geoJsonLayer);
     }
@@ -80,6 +102,10 @@ function renderColorfulMap(geojson) {
                     `<strong>${key}:</strong> ${feature.properties[key]}`
                 ).join('<br>'));
             }
+            // Add click event to change color
+            layer.on('click', function() {
+                handlePolygonClick(this);
+            });
         }
     }).addTo(map);
 
@@ -228,12 +254,19 @@ function selectHistogramProperty() {
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
     const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
     const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
 
     // Show all elements
     mapElement.style.display = 'block';
     histogramElement.style.display = 'block';
     tableContainer.style.display = 'block';
     propertySelectContainer.style.display = 'block';
+    histogramPropertySelectContainer.style.display = 'block';
+
+    // Populate histogram property select if it hasn't been done yet
+    if (histogramPropertySelectContainer.children.length === 0) {
+        populateHistogramPropertySelect(workspaceData[currentWorkspace].geojson.features[0].properties);
+    }
 
     // Render the histogram
     renderHistogram();
@@ -246,14 +279,14 @@ function renderHistogram() {
     }
 
     const geojson = workspaceData[currentWorkspace].geojson;
-    const propertySelect = document.getElementById(`propertySelect${currentWorkspace}`);
+    const histogramPropertySelect = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
     
-    if (!propertySelect) {
-        console.error('Property select not found');
+    if (!histogramPropertySelect) {
+        console.error('Histogram property select not found');
         return;
     }
 
-    const yProperty = propertySelect.value;
+    const yProperty = histogramPropertySelect.value;
     const xProperty = geojson.features[0].properties.hasOwnProperty('ID') ? 'ID' : 
                     geojson.features[0].properties.hasOwnProperty('Object Id') ? 'Object Id' : 
                     Object.keys(geojson.features[0].properties)[0];

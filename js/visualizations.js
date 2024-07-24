@@ -228,12 +228,19 @@ function selectHistogramProperty() {
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
     const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
     const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
 
     // Show all elements
     mapElement.style.display = 'block';
     histogramElement.style.display = 'block';
     tableContainer.style.display = 'block';
     propertySelectContainer.style.display = 'block';
+    histogramPropertySelectContainer.style.display = 'block';
+
+    // Populate histogram property select if it hasn't been done yet
+    if (histogramPropertySelectContainer.children.length === 0) {
+        populateHistogramPropertySelect(workspaceData[currentWorkspace].geojson.features[0].properties);
+    }
 
     // Render the histogram
     renderHistogram();

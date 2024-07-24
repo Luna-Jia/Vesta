@@ -18,7 +18,7 @@ function addWorkspace() {
                 <div id="propertySelectContainer${workspaceCount}"></div>
             </div>
             <div class="col-md-6">
-                <div id="histogramPropertySelectContainer${workspaceCount}"></div>
+                <div id="histogramPropertySelectContainer${workspaceCount}" style="display: none;"></div>
             </div>
         </div>
         <div class="row">
@@ -102,11 +102,8 @@ function attachWorkspaceListeners(workspace) {
 
 function populatePropertySelect(properties) {
     const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
-    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
     propertySelectContainer.innerHTML = '';
-    histogramPropertySelectContainer.innerHTML = '';
 
-    // Create and populate map property select
     const mapLabel = document.createElement('label');
     mapLabel.htmlFor = `propertySelect${currentWorkspace}`;
     mapLabel.className = 'form-label';
@@ -117,7 +114,31 @@ function populatePropertySelect(properties) {
     mapSelect.id = `propertySelect${currentWorkspace}`;
     mapSelect.className = 'form-select propertySelect';
 
-    // Create and populate histogram property select
+    for (let prop in properties) {
+        if (typeof properties[prop] === 'number') {
+            let option = document.createElement('option');
+            option.value = prop;
+            option.textContent = prop;
+            mapSelect.appendChild(option);
+        }
+    }
+
+    mapSelect.addEventListener('change', function() {
+        if (workspaceData[currentWorkspace].geojson) {
+            renderColorfulMap(workspaceData[currentWorkspace].geojson);
+        }
+    });
+
+    propertySelectContainer.appendChild(mapSelect);
+
+    // Trigger change event to render the map with the first property
+    mapSelect.dispatchEvent(new Event('change'));
+}
+
+function populateHistogramPropertySelect(properties) {
+    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
+    histogramPropertySelectContainer.innerHTML = '';
+
     const histogramLabel = document.createElement('label');
     histogramLabel.htmlFor = `histogramPropertySelect${currentWorkspace}`;
     histogramLabel.className = 'form-label';
@@ -128,27 +149,14 @@ function populatePropertySelect(properties) {
     histogramSelect.id = `histogramPropertySelect${currentWorkspace}`;
     histogramSelect.className = 'form-select histogramPropertySelect';
 
-    // Populate both selects
     for (let prop in properties) {
         if (typeof properties[prop] === 'number') {
-            let mapOption = document.createElement('option');
-            mapOption.value = prop;
-            mapOption.textContent = prop;
-            mapSelect.appendChild(mapOption);
-
-            let histogramOption = document.createElement('option');
-            histogramOption.value = prop;
-            histogramOption.textContent = prop;
-            histogramSelect.appendChild(histogramOption);
+            let option = document.createElement('option');
+            option.value = prop;
+            option.textContent = prop;
+            histogramSelect.appendChild(option);
         }
     }
-
-    // Add event listeners
-    mapSelect.addEventListener('change', function() {
-        if (workspaceData[currentWorkspace].geojson) {
-            renderColorfulMap(workspaceData[currentWorkspace].geojson);
-        }
-    });
 
     histogramSelect.addEventListener('change', function() {
         if (workspaceData[currentWorkspace].geojson) {
@@ -156,11 +164,9 @@ function populatePropertySelect(properties) {
         }
     });
 
-    propertySelectContainer.appendChild(mapSelect);
     histogramPropertySelectContainer.appendChild(histogramSelect);
 
-    // Trigger change events to render the map and histogram with the first properties
-    mapSelect.dispatchEvent(new Event('change'));
+    // Trigger change event to render the histogram with the first property
     histogramSelect.dispatchEvent(new Event('change'));
 }
 

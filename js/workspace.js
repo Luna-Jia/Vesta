@@ -15,9 +15,14 @@ function addWorkspace() {
     newContent.innerHTML = `
         <div class="row mb-3">
             <div class="col-md-4">
-                <label for="propertySelect${workspaceCount}" class="form-label">Select property:</label>
+                <label for="propertySelect${workspaceCount}" class="form-label">Select map property:</label>
                 <select id="propertySelect${workspaceCount}" class="form-select propertySelect"></select>
             </div>
+            <div class="col-md-4">
+                <label for="histogramPropertySelect${workspaceCount}" class="form-label">Select histogram property:</label>
+                <select id="histogramPropertySelect${workspaceCount}" class="form-select histogramPropertySelect"></select>
+            </div>
+        </div>
         </div>
         <div class="row">
             <div class="col-md-6">
@@ -100,37 +105,64 @@ function attachWorkspaceListeners(workspace) {
 
 function populatePropertySelect(properties) {
     const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
-    propertySelectContainer.innerHTML = ''; // Clear existing content
+    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
+    propertySelectContainer.innerHTML = '';
+    histogramPropertySelectContainer.innerHTML = '';
 
-    const label = document.createElement('label');
-    label.htmlFor = `propertySelect${currentWorkspace}`;
-    label.className = 'form-label';
-    label.textContent = 'Select map property:';
-    propertySelectContainer.appendChild(label);
+    // Create and populate map property select
+    const mapLabel = document.createElement('label');
+    mapLabel.htmlFor = `propertySelect${currentWorkspace}`;
+    mapLabel.className = 'form-label';
+    mapLabel.textContent = 'Select map property:';
+    propertySelectContainer.appendChild(mapLabel);
 
-    const select = document.createElement('select');
-    select.id = `propertySelect${currentWorkspace}`;
-    select.className = 'form-select propertySelect';
-    
+    const mapSelect = document.createElement('select');
+    mapSelect.id = `propertySelect${currentWorkspace}`;
+    mapSelect.className = 'form-select propertySelect';
+
+    // Create and populate histogram property select
+    const histogramLabel = document.createElement('label');
+    histogramLabel.htmlFor = `histogramPropertySelect${currentWorkspace}`;
+    histogramLabel.className = 'form-label';
+    histogramLabel.textContent = 'Select histogram property:';
+    histogramPropertySelectContainer.appendChild(histogramLabel);
+
+    const histogramSelect = document.createElement('select');
+    histogramSelect.id = `histogramPropertySelect${currentWorkspace}`;
+    histogramSelect.className = 'form-select histogramPropertySelect';
+
     for (let prop in properties) {
         if (typeof properties[prop] === 'number') {
-            let option = document.createElement('option');
-            option.value = prop;
-            option.textContent = prop;
-            select.appendChild(option);
+            let mapOption = document.createElement('option');
+            mapOption.value = prop;
+            mapOption.textContent = prop;
+            mapSelect.appendChild(mapOption);
+
+            let histogramOption = document.createElement('option');
+            histogramOption.value = prop;
+            histogramOption.textContent = prop;
+            histogramSelect.appendChild(histogramOption);
         }
     }
-    
-    select.addEventListener('change', function() {
+
+    mapSelect.addEventListener('change', function() {
         if (workspaceData[currentWorkspace].geojson) {
             renderColorfulMap(workspaceData[currentWorkspace].geojson);
         }
     });
-    
-    propertySelectContainer.appendChild(select);
 
-    // Trigger change event to render the map with the first property
-    select.dispatchEvent(new Event('change'));
+    histogramSelect.addEventListener('change', function() {
+        if (workspaceData[currentWorkspace].geojson) {
+            renderHistogram();
+        }
+    });
+
+    propertySelectContainer.appendChild(mapSelect);
+    histogramPropertySelectContainer.appendChild(histogramSelect);
+
+    // Trigger change events to render the map and histogram with the first properties
+    mapSelect.dispatchEvent(new Event('change'));
+    histogramSelect.dispatchEvent(new Event('change'));
 }
 
 // Add workspace-related event listeners

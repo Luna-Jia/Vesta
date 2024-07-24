@@ -246,14 +246,14 @@ function renderHistogram() {
     }
 
     const geojson = workspaceData[currentWorkspace].geojson;
-    const propertySelect = document.getElementById(`propertySelect${currentWorkspace}`);
+    const histogramPropertySelect = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
     
-    if (!propertySelect) {
-        console.error('Property select not found');
+    if (!histogramPropertySelect) {
+        console.error('Histogram property select not found');
         return;
     }
 
-    const yProperty = propertySelect.value;
+    const yProperty = histogramPropertySelect.value;
     const xProperty = geojson.features[0].properties.hasOwnProperty('ID') ? 'ID' : 
                     geojson.features[0].properties.hasOwnProperty('Object Id') ? 'Object Id' : 
                     Object.keys(geojson.features[0].properties)[0];

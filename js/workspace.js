@@ -37,13 +37,24 @@ function addWorkspace() {
     `;
     document.getElementById('workspaceContents').appendChild(newContent);
 
-    workspaceData[workspaceCount] = { geojson: null, map: null, histogram: null };
+    workspaceData[workspaceCount] = { 
+        geojson: null, 
+        map: null, 
+        histogram: null, 
+        geoJsonLayer: null,
+        legend: null,
+        min: null,
+        max: null,
+        highlightedFeatures: new Set()
+    };
 
     attachWorkspaceListeners(newWorkspace);
     switchToWorkspace(workspaceCount).then(() => {
         // Any additional actions after switching workspace
     });
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function switchToWorkspace(workspaceId) {
     return new Promise((resolve) => {
@@ -75,6 +86,8 @@ function switchToWorkspace(workspaceId) {
     });
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------------
+
 function attachWorkspaceListeners(workspace) {
     workspace.addEventListener('click', function() {
         switchToWorkspace(this.id.replace('workspace', ''));
@@ -99,6 +112,8 @@ function attachWorkspaceListeners(workspace) {
         }
     });
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function populatePropertySelect(properties) {
     const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
@@ -134,6 +149,7 @@ function populatePropertySelect(properties) {
     // Trigger change event to render the map with the first property
     mapSelect.dispatchEvent(new Event('change'));
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function populateHistogramPropertySelect(properties) {
     const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
@@ -169,6 +185,8 @@ function populateHistogramPropertySelect(properties) {
     // Trigger change event to render the histogram with the first property
     histogramSelect.dispatchEvent(new Event('change'));
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 // Add workspace-related event listeners
 document.addEventListener('DOMContentLoaded', function() {

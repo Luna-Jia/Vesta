@@ -249,6 +249,15 @@
 }
 
 .highlighted-row {
-    background-color: #e6e6fa !important; /* Light purple */
+    background-color: #c78eed !important; /* Light purple */
     font-weight: bold;
 }
+
+.table tr.highlighted {
+    background-color: #9292f3 !important; /* This is a light purple color */
+}
+
+.table tr.highlighted:hover {
+    background-color: #D8BFD8 !important; /* This is a slightly darker purple for hover state */
+}
+

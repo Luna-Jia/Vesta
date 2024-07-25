@@ -84,9 +84,9 @@ function renderColorfulMap(geojson) {
                     `<strong>${key}:</strong> ${feature.properties[key]}`
                 ).join('<br>'));
             }
-            // Add click event to change color
             layer.on('click', function() {
-                handlePolygonClick(this);
+                const index = geojson.features.indexOf(feature);
+                toggleHighlight(index);
             });
         }
     }).addTo(map);
@@ -112,80 +112,11 @@ function renderColorfulMap(geojson) {
     workspaceData[currentWorkspace].legend.addTo(map);
 }
 
-function renderTable() {
-    if (!workspaceData[currentWorkspace].geojson) {
-        alert('Please upload and process a shapefile first.');
-        return;
-    }
-
-    const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
-    const geojson = workspaceData[currentWorkspace].geojson;
-
-    // Create table element
-    const table = document.createElement('table');
-    table.className = 'table table-striped table-hover';
-
-    // Create table header
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    const properties = geojson.features[0].properties;
-    for (let prop in properties) {
-        const th = document.createElement('th');
-        th.textContent = prop;
-        headerRow.appendChild(th);
-    }
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    // Create table body
-    const tbody = document.createElement('tbody');
-    geojson.features.forEach((feature, index) => {
-        const row = document.createElement('tr');
-        row.id = `row-${index}`; // Add an id to each row
-        for (let prop in feature.properties) {
-            const td = document.createElement('td');
-            td.textContent = feature.properties[prop];
-            row.appendChild(td);
-        }
-        tbody.appendChild(row);
-    });
-    table.appendChild(tbody);
-
-    // Clear the container and add the new table
-    tableContainer.innerHTML = '';
-    tableContainer.appendChild(table);
-}
-
-function showTable() {
-    console.log("Showing Table");
-    if (!workspaceData[currentWorkspace].geojson) {
-        alert('Please upload and process a shapefile first.');
-        return;
-    }
-
-    const mapElement = document.getElementById(`map${currentWorkspace}`);
-    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
-    const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
-    const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
-
-    // Show the table container without hiding the map
-    tableContainer.style.display = 'block';
-
-    // Keep the map visible
-    mapElement.style.display = 'block';
-
-    // Hide histogram if it's visible
-    histogramElement.style.display = 'none';
-
-    // Keep property select visible for the map
-    propertySelectContainer.style.display = 'block';
-
-    // Render the table
-    renderTable();
-}
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function showMap() {
     console.log("Showing Map");
+    resetAllHighlights();
     if (!workspaceData[currentWorkspace].geojson) {
         alert('Please upload and process a shapefile first.');
         return;
@@ -226,6 +157,89 @@ function showMap() {
     }, 100);
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------------
+
+function renderTable() {
+    console.log("Showing Table");
+    resetAllHighlights(); 
+    if (!workspaceData[currentWorkspace].geojson) {
+        alert('Please upload and process a shapefile first.');
+        return;
+    }
+
+    const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+    const geojson = workspaceData[currentWorkspace].geojson;
+
+    // Create table element
+    const table = document.createElement('table');
+    table.className = 'table table-striped table-hover';
+
+    // Create table header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const properties = geojson.features[0].properties;
+    for (let prop in properties) {
+        const th = document.createElement('th');
+        th.textContent = prop;
+        headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create table body
+    const tbody = document.createElement('tbody');
+    geojson.features.forEach((feature, index) => {
+        const row = document.createElement('tr');
+        row.id = `row-${index}`;
+        for (let prop in feature.properties) {
+            const td = document.createElement('td');
+            td.textContent = feature.properties[prop];
+            row.appendChild(td);
+        }
+        row.addEventListener('click', function() {
+            toggleHighlight(index);
+        });
+        tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+
+    // Clear the container and add the new table
+    tableContainer.innerHTML = '';
+    tableContainer.appendChild(table);
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+
+function showTable() {
+    console.log("Showing Table");
+    if (!workspaceData[currentWorkspace].geojson) {
+        alert('Please upload and process a shapefile first.');
+        return;
+    }
+
+    const mapElement = document.getElementById(`map${currentWorkspace}`);
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+    const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+
+    // Show the table container without hiding the map
+    tableContainer.style.display = 'block';
+
+    // Keep the map visible
+    mapElement.style.display = 'block';
+
+    // Hide histogram if it's visible
+    histogramElement.style.display = 'none';
+
+    // Keep property select visible for the map
+    propertySelectContainer.style.display = 'block';
+
+    // Render the table
+    renderTable();
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+
 function selectHistogramProperty() {
     console.log("Showing Histogram");
     if (!workspaceData[currentWorkspace].geojson) {
@@ -254,6 +268,8 @@ function selectHistogramProperty() {
     // Render the histogram
     renderHistogram();
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function renderHistogram() {
     if (!workspaceData[currentWorkspace].geojson) {
@@ -291,6 +307,8 @@ function renderHistogram() {
 
     Plotly.newPlot(`histogram${currentWorkspace}`, [trace], layout);
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function showScatterPlot() {
     const geojson = workspaceData[currentWorkspace].geojson;
@@ -339,6 +357,8 @@ function showScatterPlot() {
     }], layout).then(optimizePlotlyCanvases);
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------------
+
 function showCumulativeDistribution() {
     const geojson = workspaceData[currentWorkspace].geojson;
     if (!geojson) {
@@ -383,6 +403,8 @@ function showCumulativeDistribution() {
     }], layout).then(optimizePlotlyCanvases);
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------------
+
 function showHeatmap() {
     const geojson = workspaceData[currentWorkspace].geojson;
     if (!geojson) {
@@ -423,6 +445,8 @@ function showHeatmap() {
     }], layout).then(optimizePlotlyCanvases);
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------------
+
 function showBoxPlot() {
     const geojson = workspaceData[currentWorkspace].geojson;
     if (!geojson) {
@@ -451,6 +475,8 @@ function showBoxPlot() {
 
     Plotly.newPlot(`histogram${currentWorkspace}`, data, layout).then(optimizePlotlyCanvases);
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function show3DScatter() {
     const geojson = workspaceData[currentWorkspace].geojson;
@@ -493,6 +519,8 @@ function show3DScatter() {
 
     Plotly.newPlot(`histogram${currentWorkspace}`, data, layout).then(optimizePlotlyCanvases);
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function optimizePlotlyCanvases() {
     // Select all canvas elements within Plotly containers

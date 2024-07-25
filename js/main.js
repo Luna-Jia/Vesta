@@ -2,8 +2,19 @@
 let workspaceCount = 1;
 let currentWorkspace = 1;
 let workspaceData = {
-    1: { geojson: null, map: null, histogram: null }
+    1: {
+        geojson: null,
+        map: null,
+        histogram: null,
+        geoJsonLayer: null,
+        legend: null,
+        min: null,
+        max: null,
+        highlightedFeatures: new Set()
+    }
 };
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function addHighlightedRowStyle() {
     const style = document.createElement('style');
@@ -15,12 +26,14 @@ function addHighlightedRowStyle() {
     `;
     document.head.appendChild(style);
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function getColor(value, min, max) {
     const ratio = (value - min) / (max - min);
     const hue = (1 - ratio) * 60; // 60 for yellow, 0 for red
     return `hsl(${hue}, 100%, 50%)`;
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function toggleSecondaryNav() {
     var secondarySidebar = document.getElementById("secondarySidebar");
@@ -35,6 +48,7 @@ function toggleSecondaryNav() {
         main.style.marginLeft = "15em"; // 3em (main sidebar) + 12em (secondary sidebar)
     }
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function readFile(file) {
     return new Promise((resolve, reject) => {
@@ -44,6 +58,7 @@ function readFile(file) {
         reader.readAsArrayBuffer(file);
     });
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function processShapefile() {
     const shpFile = document.getElementById('shpFile').files[0];
@@ -73,6 +88,8 @@ function processShapefile() {
         });
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------------
+
 function populateFileVariablesList(fileName, properties) {
     const fileNameElement = document.getElementById('fileName');
     const variableList = document.getElementById('variableList');
@@ -98,6 +115,8 @@ function populateFileVariablesList(fileName, properties) {
     });
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------------
+
 function showImportOptions() {
     var secondarySidebar = document.getElementById("secondarySidebar");
     var importSection = document.getElementById("importSection");
@@ -116,6 +135,7 @@ function showImportOptions() {
     fileVariablesSection.style.display = "none";
     visualizationButtons.style.display = "none";
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function showVisualizationOptions() {
     var secondarySidebar = document.getElementById("secondarySidebar");
@@ -135,31 +155,21 @@ function showVisualizationOptions() {
     fileVariablesSection.style.display = "none";
     visualizationButtons.style.display = "block";
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function handlePolygonClick(layer) {
-    // Reset all polygons to their original color
-    workspaceData[currentWorkspace].geoJsonLayer.eachLayer(function (l) {
-        l.setStyle({
-            fillColor: getColor(l.feature.properties[document.getElementById(`propertySelect${currentWorkspace}`).value], 
-                                workspaceData[currentWorkspace].min, 
-                                workspaceData[currentWorkspace].max),
-            color: 'white'
-        });
-    });
-
-    // Change the clicked polygon to purple
+    workspaceData[currentWorkspace].geoJsonLayer.resetStyle();
     layer.setStyle({
-        fillColor: 'purple',
-        color: 'purple'
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
     });
-
-    // Get the ObjectId of the selected polygon
-    const objectId = layer.feature.properties.ObjectId;
-    console.log("Selected polygon ObjectId:", objectId);
-
-    // Highlight the corresponding row in the table
-    highlightTableRow(objectId);
+    layer.bringToFront();
+    const index = workspaceData[currentWorkspace].geoJsonLayer.getLayers().indexOf(layer);
+    highlightTableRow(index);
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 function highlightTableRow(objectId) {
     const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
@@ -194,6 +204,63 @@ function highlightTableRow(objectId) {
         console.error("No matching row found for ObjectId:", objectId);
     }
 }
+// ------------------------------------------------------------------------------------------------------------------------------------
+
+function toggleHighlight(index) {
+    const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
+    const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+    
+    if (highlightedFeatures.has(index)) {
+        // If the feature is already highlighted, unhighlight it
+        highlightedFeatures.delete(index);
+        if (layer) {
+            workspaceData[currentWorkspace].geoJsonLayer.resetStyle(layer);
+        }
+        unhighlightTableRow(index);
+    } else {
+        // Otherwise, highlight the feature
+        highlightedFeatures.add(index);
+        if (layer) {
+            layer.setStyle({
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+            layer.bringToFront();
+        }
+        highlightTableRow(index);
+    }
+}
+
+function highlightTableRow(index) {
+    const rowToHighlight = document.getElementById(`row-${index}`);
+    if (rowToHighlight) {
+        rowToHighlight.classList.add('highlighted');
+        rowToHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function unhighlightTableRow(index) {
+    const rowToUnhighlight = document.getElementById(`row-${index}`);
+    if (rowToUnhighlight) {
+        rowToUnhighlight.classList.remove('highlighted');
+    }
+}
+
+function resetAllHighlights() {
+    const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
+    highlightedFeatures.forEach(index => {
+        const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+        if (layer) {
+            workspaceData[currentWorkspace].geoJsonLayer.resetStyle(layer);
+        }
+        unhighlightTableRow(index);
+    });
+    highlightedFeatures.clear();
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {

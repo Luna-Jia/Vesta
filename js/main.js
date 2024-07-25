@@ -14,6 +14,137 @@ let workspaceData = {
     }
 };
 
+let highlightColor = '#e6e6fa'; // Light purple
+let mapHighlightColor = '#9370db'; // Medium purple
+let mapHighlightWeight = 5;
+let mapSelectionStyle = 'fill'; // 'fill' or 'outline'
+let dataOpacity = 0.7;
+
+function openSettingsModal() {
+    document.getElementById('settingsModal').style.display = 'block';
+    document.getElementById('highlightColor').value = highlightColor;
+    document.getElementById('mapHighlightColor').value = mapHighlightColor;
+    document.getElementById('mapHighlightWeight').value = mapHighlightWeight;
+    document.getElementById('mapSelectionStyle').value = mapSelectionStyle;
+    document.getElementById('dataOpacity').value = dataOpacity;
+}
+
+function closeSettingsModal() {
+    document.getElementById('settingsModal').style.display = 'none';
+}
+
+function saveSettings() {
+    highlightColor = document.getElementById('highlightColor').value;
+    mapHighlightColor = document.getElementById('mapHighlightColor').value;
+    mapHighlightWeight = parseInt(document.getElementById('mapHighlightWeight').value);
+    mapSelectionStyle = document.getElementById('mapSelectionStyle').value;
+    dataOpacity = parseFloat(document.getElementById('dataOpacity').value);
+
+    // Update the highlighted row style
+    updateHighlightedRowStyle();
+
+    // Update any currently highlighted features on the map
+    updateMapHighlights();
+
+    // Update the data layer opacity
+    updateDataLayerOpacity();
+
+    closeSettingsModal();
+}
+
+function updateHighlightedRowStyle() {
+    const style = document.querySelector('style');
+    style.textContent = `
+        .highlighted-row {
+            background-color: ${highlightColor} !important;
+            font-weight: bold;
+        }
+    `;
+}
+
+function updateMapHighlights() {
+    const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
+    highlightedFeatures.forEach(index => {
+        const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+        if (layer) {
+            if (mapSelectionStyle === 'fill') {
+                layer.setStyle({
+                    fillColor: mapHighlightColor,
+                    fillOpacity: dataOpacity,
+                    weight: 1,
+                    color: '#000',
+                    opacity: 1
+                });
+            } else { // 'outline'
+                const originalStyle = layer.feature.properties.originalStyle || {};
+                layer.setStyle({
+                    fillColor: originalStyle.fillColor || layer.options.fillColor,
+                    fillOpacity: dataOpacity,
+                    weight: mapHighlightWeight,
+                    color: mapHighlightColor,
+                    opacity: 1
+                });
+            }
+        }
+    });
+}
+
+function updateDataLayerOpacity() {
+    if (workspaceData[currentWorkspace].geoJsonLayer) {
+        workspaceData[currentWorkspace].geoJsonLayer.setStyle({
+            fillOpacity: dataOpacity
+        });
+    }
+}
+
+function toggleHighlight(index) {
+    const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
+    const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+    
+    if (highlightedFeatures.has(index)) {
+        highlightedFeatures.delete(index);
+        if (layer) {
+            workspaceData[currentWorkspace].geoJsonLayer.resetStyle(layer);
+        }
+        unhighlightTableRow(index);
+    } else {
+        highlightedFeatures.add(index);
+        if (layer) {
+            // Store the original style if not already stored
+            if (!layer.feature.properties.originalStyle) {
+                layer.feature.properties.originalStyle = {
+                    fillColor: layer.options.fillColor,
+                    fillOpacity: layer.options.fillOpacity,
+                    weight: layer.options.weight,
+                    color: layer.options.color,
+                    opacity: layer.options.opacity
+                };
+            }
+
+            if (mapSelectionStyle === 'fill') {
+                layer.setStyle({
+                    fillColor: mapHighlightColor,
+                    fillOpacity: dataOpacity,
+                    weight: 1,
+                    color: '#000',
+                    opacity: 1
+                });
+            } else { // 'outline'
+                layer.setStyle({
+                    fillColor: layer.feature.properties.originalStyle.fillColor,
+                    fillOpacity: dataOpacity,
+                    weight: mapHighlightWeight,
+                    color: mapHighlightColor,
+                    opacity: 1
+                });
+            }
+            layer.bringToFront();
+        }
+        highlightTableRow(index);
+    }
+}
+
+
 // ------------------------------------------------------------------------------------------------------------------------------------
 
 function addHighlightedRowStyle() {
@@ -206,32 +337,19 @@ function highlightTableRow(objectId) {
 }
 // ------------------------------------------------------------------------------------------------------------------------------------
 
-function toggleHighlight(index) {
-    const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
-    const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
-    
-    if (highlightedFeatures.has(index)) {
-        // If the feature is already highlighted, unhighlight it
-        highlightedFeatures.delete(index);
-        if (layer) {
-            workspaceData[currentWorkspace].geoJsonLayer.resetStyle(layer);
+document.addEventListener('DOMContentLoaded', function() {
+    addHighlightedRowStyle();
+
+    // Close the settings modal when clicking outside of it
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('settingsModal')) {
+            closeSettingsModal();
         }
-        unhighlightTableRow(index);
-    } else {
-        // Otherwise, highlight the feature
-        highlightedFeatures.add(index);
-        if (layer) {
-            layer.setStyle({
-                weight: 5,
-                color: '#666',
-                dashArray: '',
-                fillOpacity: 0.7
-            });
-            layer.bringToFront();
-        }
-        highlightTableRow(index);
     }
-}
+    
+    // Close the settings modal when clicking the close button
+    document.querySelector('.close').onclick = closeSettingsModal;
+});
 
 function highlightTableRow(index) {
     const rowToHighlight = document.getElementById(`row-${index}`);

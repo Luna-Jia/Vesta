@@ -144,12 +144,18 @@ function showMap() {
             }).addTo(workspaceData[currentWorkspace].map);
 
             // Add settings button to the map
+            // Add settings button to the map
             const settingsButton = L.control({position: 'topright'});
             settingsButton.onAdd = function(map) {
-                const button = L.DomUtil.create('button', 'settings-button');
+                const button = L.DomUtil.create('button', 'leaflet-bar leaflet-control');
                 button.innerHTML = '<i class="fas fa-cog"></i>';
                 button.setAttribute('id', 'settingsButton');
                 button.setAttribute('title', 'Settings');
+                button.style.backgroundColor = 'white';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.border = 'none';
+                button.style.cursor = 'pointer';
                 button.onclick = openSettingsModal;
                 return button;
             };

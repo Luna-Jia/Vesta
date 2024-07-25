@@ -21,12 +21,21 @@ let mapSelectionStyle = 'fill'; // 'fill' or 'outline'
 let dataOpacity = 0.7;
 
 function openSettingsModal() {
-    document.getElementById('settingsModal').style.display = 'block';
+    const modal = document.getElementById('settingsModal');
+    modal.style.display = 'block';
     document.getElementById('highlightColor').value = highlightColor;
     document.getElementById('mapHighlightColor').value = mapHighlightColor;
     document.getElementById('mapHighlightWeight').value = mapHighlightWeight;
     document.getElementById('mapSelectionStyle').value = mapSelectionStyle;
     document.getElementById('dataOpacity').value = dataOpacity;
+
+    // Position the modal near the settings button
+    const settingsButton = document.getElementById('settingsButton');
+    const buttonRect = settingsButton.getBoundingClientRect();
+    const modalContent = modal.querySelector('.modal-content');
+    modalContent.style.position = 'absolute';
+    modalContent.style.top = `${buttonRect.bottom + 10}px`;
+    modalContent.style.right = `${window.innerWidth - buttonRect.right}px`;
 }
 
 function closeSettingsModal() {
@@ -384,4 +393,15 @@ function resetAllHighlights() {
 document.addEventListener('DOMContentLoaded', function() {
     addHighlightedRowStyle();
     // Any other initialization code you might have
+});
+
+window.addEventListener('resize', function() {
+    const modal = document.getElementById('settingsModal');
+    if (modal.style.display === 'block') {
+        // The modal is open, so we need to recenter it
+        const modalContent = modal.querySelector('.modal-content');
+        modalContent.style.left = '50%';
+        modalContent.style.top = '50%';
+        modalContent.style.transform = 'translate(-50%, -50%)';
+    }
 });

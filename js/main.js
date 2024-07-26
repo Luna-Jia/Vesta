@@ -113,40 +113,27 @@ function toggleHighlight(index) {
     if (highlightedFeatures.has(index)) {
         highlightedFeatures.delete(index);
         if (layer) {
-            workspaceData[currentWorkspace].geoJsonLayer.resetStyle(layer);
+            // Reset to original style but keep white outline
+            const originalStyle = layer.feature.properties.originalStyle;
+            layer.setStyle({
+                fillColor: originalStyle.fillColor,
+                fillOpacity: dataOpacity,
+                weight: 2,
+                color: 'white',
+                opacity: 1
+            });
         }
         unhighlightTableRow(index);
     } else {
         highlightedFeatures.add(index);
         if (layer) {
-            // Store the original style if not already stored
-            if (!layer.feature.properties.originalStyle) {
-                layer.feature.properties.originalStyle = {
-                    fillColor: layer.options.fillColor,
-                    fillOpacity: layer.options.fillOpacity,
-                    weight: layer.options.weight,
-                    color: layer.options.color,
-                    opacity: layer.options.opacity
-                };
-            }
-
-            if (mapSelectionStyle === 'fill') {
-                layer.setStyle({
-                    fillColor: mapHighlightColor,
-                    fillOpacity: dataOpacity,
-                    weight: 1,
-                    color: '#000',
-                    opacity: 1
-                });
-            } else { // 'outline'
-                layer.setStyle({
-                    fillColor: layer.feature.properties.originalStyle.fillColor,
-                    fillOpacity: dataOpacity,
-                    weight: mapHighlightWeight,
-                    color: mapHighlightColor,
-                    opacity: 1
-                });
-            }
+            layer.setStyle({
+                fillColor: mapHighlightColor,
+                fillOpacity: dataOpacity,
+                weight: 2,
+                color: 'white',
+                opacity: 1
+            });
             layer.bringToFront();
         }
         highlightTableRow(index);
@@ -380,7 +367,14 @@ function resetAllHighlights() {
     highlightedFeatures.forEach(index => {
         const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
         if (layer) {
-            workspaceData[currentWorkspace].geoJsonLayer.resetStyle(layer);
+            const originalStyle = layer.feature.properties.originalStyle;
+            layer.setStyle({
+                fillColor: originalStyle.fillColor,
+                fillOpacity: dataOpacity,
+                weight: 2,
+                color: 'white',
+                opacity: 1
+            });
         }
         unhighlightTableRow(index);
     });

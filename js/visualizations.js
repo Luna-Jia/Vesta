@@ -66,23 +66,28 @@ function renderColorfulMap(geojson) {
                 color: "#000",
                 weight: 1,
                 opacity: 1,
-                fillOpacity: 0.8
+                fillOpacity: dataOpacity
             });
         },
         style: function(feature) {
-            return {
+            const style = {
                 fillColor: getColor(feature.properties[propertyName], min, max),
                 weight: 2,
                 opacity: 1,
                 color: 'white',
-                fillOpacity: 0.7
+                fillOpacity: dataOpacity
             };
+            // Store the original style
+            feature.properties.originalStyle = {...style};
+            return style;
         },
         onEachFeature: function(feature, layer) {
             if (feature.properties) {
-                layer.bindPopup(Object.keys(feature.properties).map(key => 
-                    `<strong>${key}:</strong> ${feature.properties[key]}`
-                ).join('<br>'));
+                layer.bindPopup(Object.keys(feature.properties)
+                    .filter(key => key !== 'originalStyle') // Filter out originalStyle
+                    .map(key => 
+                        `<strong>${key}:</strong> ${feature.properties[key]}`
+                    ).join('<br>'));
             }
             layer.on('click', function() {
                 const index = geojson.features.indexOf(feature);
@@ -90,9 +95,9 @@ function renderColorfulMap(geojson) {
             });
         }
     }).addTo(map);
-
+    
     map.fitBounds(workspaceData[currentWorkspace].geoJsonLayer.getBounds());
-
+    
     // Add or update legend
     if (workspaceData[currentWorkspace].legend) {
         map.removeControl(workspaceData[currentWorkspace].legend);
@@ -137,6 +142,24 @@ function showMap() {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(workspaceData[currentWorkspace].map);
+
+            // Add settings button to the map
+            // Add settings button to the map
+            const settingsButton = L.control({position: 'topright'});
+            settingsButton.onAdd = function(map) {
+                const button = L.DomUtil.create('button', 'leaflet-bar leaflet-control');
+                button.innerHTML = '<i class="fas fa-cog"></i>';
+                button.setAttribute('id', 'settingsButton');
+                button.setAttribute('title', 'Settings');
+                button.style.backgroundColor = 'white';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.border = 'none';
+                button.style.cursor = 'pointer';
+                button.onclick = openSettingsModal;
+                return button;
+            };
+            settingsButton.addTo(workspaceData[currentWorkspace].map);
         } else {
             console.error(`Map container not found for workspace ${currentWorkspace}`);
             return;
@@ -179,9 +202,11 @@ function renderTable() {
     const headerRow = document.createElement('tr');
     const properties = geojson.features[0].properties;
     for (let prop in properties) {
-        const th = document.createElement('th');
-        th.textContent = prop;
-        headerRow.appendChild(th);
+        if (prop !== 'originalStyle') { // Skip originalStyle
+            const th = document.createElement('th');
+            th.textContent = prop;
+            headerRow.appendChild(th);
+        }
     }
     thead.appendChild(headerRow);
     table.appendChild(thead);
@@ -192,9 +217,11 @@ function renderTable() {
         const row = document.createElement('tr');
         row.id = `row-${index}`;
         for (let prop in feature.properties) {
-            const td = document.createElement('td');
-            td.textContent = feature.properties[prop];
-            row.appendChild(td);
+            if (prop !== 'originalStyle') { // Skip originalStyle
+                const td = document.createElement('td');
+                td.textContent = feature.properties[prop];
+                row.appendChild(td);
+            }
         }
         row.addEventListener('click', function() {
             toggleHighlight(index);

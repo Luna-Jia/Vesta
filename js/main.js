@@ -127,25 +127,25 @@ function updateMapHighlights(colorChanged, styleChanged, opacityChanged) {
     highlightedFeatures.forEach(index => {
         const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
         if (layer) {
-            const currentStyle = layer.options;
+            const originalStyle = layer.feature.properties.originalStyle || {};
             const newStyle = {};
 
-            if (styleChanged) {
-                if (mapSelectionStyle === 'fill') {
-                    newStyle.weight = 2;
-                    newStyle.color = 'white';
-                } else { // 'outline'
-                    newStyle.weight = mapHighlightWeight;
-                    newStyle.color = mapHighlightColor;
-                }
+            if (mapSelectionStyle === 'fill') {
+                newStyle.fillColor = mapHighlightColor;
+                newStyle.weight = 2;
+                newStyle.color = 'white';
+            } else { // 'outline'
+                newStyle.fillColor = originalStyle.fillColor || layer.options.fillColor;
+                newStyle.weight = mapHighlightWeight;
+                newStyle.color = mapHighlightColor;
             }
 
             if (opacityChanged) {
                 newStyle.fillOpacity = dataOpacity;
             }
 
-            // Merge the new style with the current style
-            layer.setStyle({...currentStyle, ...newStyle});
+            // Apply the new style
+            layer.setStyle(newStyle);
         }
     });
 }
@@ -157,7 +157,7 @@ function toggleHighlight(index) {
     if (highlightedFeatures.has(index)) {
         highlightedFeatures.delete(index);
         if (layer) {
-            // Reset to original style but keep white outline
+            // Reset to original style
             const originalStyle = layer.feature.properties.originalStyle;
             layer.setStyle({
                 fillColor: originalStyle.fillColor,
@@ -171,13 +171,23 @@ function toggleHighlight(index) {
     } else {
         highlightedFeatures.add(index);
         if (layer) {
-            layer.setStyle({
-                fillColor: mapHighlightColor,
-                fillOpacity: dataOpacity,
-                weight: 2,
-                color: 'white',
-                opacity: 1
-            });
+            if (mapSelectionStyle === 'fill') {
+                layer.setStyle({
+                    fillColor: mapHighlightColor,
+                    fillOpacity: dataOpacity,
+                    weight: 2,
+                    color: 'white',
+                    opacity: 1
+                });
+            } else { // 'outline'
+                layer.setStyle({
+                    fillColor: layer.feature.properties.originalStyle.fillColor,
+                    fillOpacity: dataOpacity,
+                    weight: mapHighlightWeight,
+                    color: mapHighlightColor,
+                    opacity: 1
+                });
+            }
             layer.bringToFront();
         }
         highlightTableRow(index);

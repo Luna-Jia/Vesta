@@ -39,71 +39,115 @@ function openSettingsModal() {
 }
 
 function closeSettingsModal() {
-    document.getElementById('settingsModal').style.display = 'none';
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function updateHighlightedRowStyle() {
+    const style = document.querySelector('style#highlightedRowStyle');
+    if (style) {
+        style.textContent = `
+            .highlighted-row {
+                background-color: ${highlightColor} !important;
+                font-weight: bold;
+            }
+        `;
+    } else {
+        const newStyle = document.createElement('style');
+        newStyle.id = 'highlightedRowStyle';
+        newStyle.textContent = `
+            .highlighted-row {
+                background-color: ${highlightColor} !important;
+                font-weight: bold;
+            }
+        `;
+        document.head.appendChild(newStyle);
+    }
 }
 
 function saveSettings() {
-    highlightColor = document.getElementById('highlightColor').value;
-    mapHighlightColor = document.getElementById('mapHighlightColor').value;
-    mapHighlightWeight = parseInt(document.getElementById('mapHighlightWeight').value);
-    mapSelectionStyle = document.getElementById('mapSelectionStyle').value;
-    dataOpacity = parseFloat(document.getElementById('dataOpacity').value);
+    const newHighlightColor = document.getElementById('highlightColor').value;
+    const newMapHighlightColor = document.getElementById('mapHighlightColor').value;
+    const newMapHighlightWeight = parseInt(document.getElementById('mapHighlightWeight').value);
+    const newMapSelectionStyle = document.getElementById('mapSelectionStyle').value;
+    const newDataOpacity = parseFloat(document.getElementById('dataOpacity').value);
+
+    // Check which settings have changed
+    const colorChanged = newMapHighlightColor !== mapHighlightColor;
+    const styleChanged = newMapSelectionStyle !== mapSelectionStyle || newMapHighlightWeight !== mapHighlightWeight;
+    const opacityChanged = newDataOpacity !== dataOpacity;
+
+    // Update global variables
+    highlightColor = newHighlightColor;
+    mapHighlightColor = newMapHighlightColor;
+    mapHighlightWeight = newMapHighlightWeight;
+    mapSelectionStyle = newMapSelectionStyle;
+    dataOpacity = newDataOpacity;
 
     // Update the highlighted row style
     updateHighlightedRowStyle();
 
-    // Update any currently highlighted features on the map
-    updateMapHighlights();
+    // Update map highlights based on what changed
+    if (colorChanged) {
+        updateHighlightedPolygonsFillColor();
+    } else if (styleChanged || opacityChanged) {
+        updateMapHighlights(colorChanged, styleChanged, opacityChanged);
+    }
 
-    // Update the data layer opacity
-    updateDataLayerOpacity();
+    // Update the data layer opacity if it changed
+    if (opacityChanged) {
+        updateDataLayerOpacity();
+    }
 
+    // Close the modal
     closeSettingsModal();
 }
 
-function updateHighlightedRowStyle() {
-    const style = document.querySelector('style');
-    style.textContent = `
-        .highlighted-row {
-            background-color: ${highlightColor} !important;
-            font-weight: bold;
-        }
-    `;
-}
-
-function updateMapHighlights() {
+function updateHighlightedPolygonsFillColor() {
     const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
     highlightedFeatures.forEach(index => {
         const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
         if (layer) {
-            if (mapSelectionStyle === 'fill') {
-                layer.setStyle({
-                    fillColor: mapHighlightColor,
-                    fillOpacity: dataOpacity,
-                    weight: 1,
-                    color: '#000',
-                    opacity: 1
-                });
-            } else { // 'outline'
-                const originalStyle = layer.feature.properties.originalStyle || {};
-                layer.setStyle({
-                    fillColor: originalStyle.fillColor || layer.options.fillColor,
-                    fillOpacity: dataOpacity,
-                    weight: mapHighlightWeight,
-                    color: mapHighlightColor,
-                    opacity: 1
-                });
-            }
+            layer.setStyle({
+                fillColor: mapHighlightColor,
+                // Maintain other styles
+                weight: 2,
+                color: 'white',
+                opacity: 1,
+                fillOpacity: dataOpacity
+            });
         }
     });
 }
 
-function updateDataLayerOpacity() {
-    if (workspaceData[currentWorkspace].geoJsonLayer) {
-        workspaceData[currentWorkspace].geoJsonLayer.setStyle({
-            fillOpacity: dataOpacity
-        });
-    }
+function updateMapHighlights(colorChanged, styleChanged, opacityChanged) {
+    const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
+    highlightedFeatures.forEach(index => {
+        const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+        if (layer) {
+            const currentStyle = layer.options;
+            const newStyle = {};
+
+            if (styleChanged) {
+                if (mapSelectionStyle === 'fill') {
+                    newStyle.weight = 2;
+                    newStyle.color = 'white';
+                } else { // 'outline'
+                    newStyle.weight = mapHighlightWeight;
+                    newStyle.color = mapHighlightColor;
+                }
+            }
+
+            if (opacityChanged) {
+                newStyle.fillOpacity = dataOpacity;
+            }
+
+            // Merge the new style with the current style
+            layer.setStyle({...currentStyle, ...newStyle});
+        }
+    });
 }
 
 function toggleHighlight(index) {
@@ -137,6 +181,14 @@ function toggleHighlight(index) {
             layer.bringToFront();
         }
         highlightTableRow(index);
+    }
+}
+
+function updateDataLayerOpacity() {
+    if (workspaceData[currentWorkspace].geoJsonLayer) {
+        workspaceData[currentWorkspace].geoJsonLayer.setStyle({
+            fillOpacity: dataOpacity
+        });
     }
 }
 

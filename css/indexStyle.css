@@ -360,3 +360,26 @@
 .map {
     position: relative;
 }
+
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.drop-zone.drag-over {
+    background-color: #f0f0f0;
+    border-color: #999;
+}
+
+#fileList {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#fileList li {
+    margin-bottom: 5px;
+}

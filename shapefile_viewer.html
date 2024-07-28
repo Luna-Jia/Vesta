@@ -77,15 +77,15 @@
         <!-- Import section -->
         <div id="importSection" style="display: none;">
             <div class="mb-3">
-                <label for="shpFile" class="form-label">Select .shp file:</label>
-                <input type="file" class="form-control" id="shpFile" accept=".shp">
+                <label class="form-label">Select or drag & drop .shp and .dbf files:</label>
+                <div id="fileDropZone" class="drop-zone">
+                    <input type="file" id="fileInput" accept=".shp,.dbf" multiple class="form-control" style="display: none;">
+                    <p>Drag & drop files here or click to select</p>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="dbfFile" class="form-label">Select .dbf file:</label>
-                <input type="file" class="form-control" id="dbfFile" accept=".dbf">
-            </div>
-            <button onclick="processShapefile()" class="btn btn-primary">Upload and Render</button>
-        </div>  
+            <div id="fileList" class="mt-2"></div>
+            <button onclick="processShapefiles()" class="btn btn-primary mt-2">Upload and Render</button>
+        </div>
 
         <div id="fileVariablesSection" style="display: none;">
             <div id="fileNameToggle" class="file-toggle">

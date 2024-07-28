@@ -252,6 +252,75 @@ function toggleSecondaryNav() {
 }
 // ------------------------------------------------------------------------------------------------------------------------------------
 
+let selectedFiles = {};
+
+function setupDropZone() {
+    const dropZone = document.getElementById('fileDropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+}
+
+function handleFiles(files) {
+    for (let file of files) {
+        if (file.name.endsWith('.shp') || file.name.endsWith('.dbf')) {
+            selectedFiles[file.name.split('.').pop()] = file;
+            updateFileList();
+        }
+    }
+}
+
+function updateFileList() {
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    for (let fileType in selectedFiles) {
+        const li = document.createElement('li');
+        li.textContent = selectedFiles[fileType].name;
+        fileList.appendChild(li);
+    }
+}
+
+function processShapefiles() {
+    if (!selectedFiles.shp || !selectedFiles.dbf) {
+        alert('Please select both .shp and .dbf files.');
+        return;
+    }
+
+    Promise.all([readFile(selectedFiles.shp), readFile(selectedFiles.dbf)])
+        .then(([shpBuffer, dbfBuffer]) => {
+            return shapefile.read(shpBuffer, dbfBuffer);
+        })
+        .then(geojson => {
+            console.log('GeoJSON created successfully:', geojson);
+            workspaceData[currentWorkspace].geojson = geojson;
+            populateFileVariablesList(selectedFiles.shp.name, geojson.features[0].properties);
+            alert('Files processed successfully. Click on Visualizations button to view.');
+        })
+        .catch(error => {
+            console.error('Error processing shapefile:', error);
+            alert('Error processing shapefile. Please check the console for details.');
+        });
+}
+
 function readFile(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -260,36 +329,25 @@ function readFile(file) {
         reader.readAsArrayBuffer(file);
     });
 }
-// ------------------------------------------------------------------------------------------------------------------------------------
 
-function processShapefile() {
-    const shpFile = document.getElementById('shpFile').files[0];
-    const dbfFile = document.getElementById('dbfFile').files[0];
+function showImportOptions() {
+    var secondarySidebar = document.getElementById("secondarySidebar");
+    var importSection = document.getElementById("importSection");
+    var fileVariablesSection = document.getElementById("fileVariablesSection");
+    var visualizationButtons = document.getElementById("visualizationButtons");
+    var main = document.getElementById("main");
 
-    if (!shpFile || !dbfFile) {
-        alert('Please select both .shp and .dbf files');
-        return;
+    if (secondarySidebar.style.width !== "12em") {
+        secondarySidebar.style.width = "12em";
+        main.style.marginLeft = "15em";
     }
 
-    Promise.all([readFile(shpFile), readFile(dbfFile)])
-        .then(([shpBuffer, dbfBuffer]) => {
-            shapefile.read(shpBuffer, dbfBuffer)
-                .then(geojson => {
-                    console.log('GeoJSON created successfully:', geojson);
-                    workspaceData[currentWorkspace].geojson = geojson;
-                    populateFileVariablesList(shpFile.name, geojson.features[0].properties);
-                    alert('Files processed successfully. Click on Visualizations button to view.');
-                })
-                .catch(error => {
-                    console.error('Error processing shapefile:', error);
-                    alert('Error processing shapefile. Please check the console for details.');
-                });
-        }).catch(error => {
-            console.error('Error reading files:', error);
-            alert('Error reading files. Please check the console for details.');
-        });
-}
+    importSection.style.display = "block";
+    fileVariablesSection.style.display = "none";
+    visualizationButtons.style.display = "none";
 
+    setupDropZone();
+}
 // ------------------------------------------------------------------------------------------------------------------------------------
 
 function populateFileVariablesList(fileName, properties) {
@@ -317,26 +375,6 @@ function populateFileVariablesList(fileName, properties) {
     });
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------------
-
-function showImportOptions() {
-    var secondarySidebar = document.getElementById("secondarySidebar");
-    var importSection = document.getElementById("importSection");
-    var fileVariablesSection = document.getElementById("fileVariablesSection");
-    var visualizationButtons = document.getElementById("visualizationButtons");
-    var main = document.getElementById("main");
-
-    // Show the secondary sidebar if it's not already visible
-    if (secondarySidebar.style.width !== "12em") {
-        secondarySidebar.style.width = "12em";
-        main.style.marginLeft = "15em"; // Adjusted margin to account for both sidebars
-    }
-
-    // Show the import section and hide other sections
-    importSection.style.display = "block";
-    fileVariablesSection.style.display = "none";
-    visualizationButtons.style.display = "none";
-}
 // ------------------------------------------------------------------------------------------------------------------------------------
 
 function showVisualizationOptions() {

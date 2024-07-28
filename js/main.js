@@ -20,6 +20,8 @@ let mapHighlightWeight = 5;
 let mapSelectionStyle = 'fill'; // 'fill' or 'outline'
 let dataOpacity = 0.7;
 
+//-------------------------------------------------------------------------------------------------------------------------
+
 function openSettingsModal() {
     const modal = document.getElementById('settingsModal');
     modal.style.display = 'block';
@@ -38,12 +40,16 @@ function openSettingsModal() {
     modalContent.style.right = `${window.innerWidth - buttonRect.right}px`;
 }
 
+//-------------------------------------------------------------------------------------------------------------------------
+
 function closeSettingsModal() {
     const modal = document.getElementById('settingsModal');
     if (modal) {
         modal.style.display = 'none';
     }
 }
+
+//-------------------------------------------------------------------------------------------------------------------------
 
 function updateHighlightedRowStyle() {
     const style = document.querySelector('style#highlightedRowStyle');
@@ -66,6 +72,8 @@ function updateHighlightedRowStyle() {
         document.head.appendChild(newStyle);
     }
 }
+
+//-------------------------------------------------------------------------------------------------------------------------
 
 function saveSettings() {
     const newHighlightColor = document.getElementById('highlightColor').value;
@@ -105,6 +113,8 @@ function saveSettings() {
     closeSettingsModal();
 }
 
+//-------------------------------------------------------------------------------------------------------------------------
+
 function updateHighlightedPolygonsFillColor() {
     const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
     highlightedFeatures.forEach(index => {
@@ -121,6 +131,8 @@ function updateHighlightedPolygonsFillColor() {
         }
     });
 }
+
+//-------------------------------------------------------------------------------------------------------------------------
 
 function updateMapHighlights(colorChanged, styleChanged, opacityChanged) {
     const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
@@ -149,6 +161,7 @@ function updateMapHighlights(colorChanged, styleChanged, opacityChanged) {
         }
     });
 }
+//-------------------------------------------------------------------------------------------------------------------------
 
 function toggleHighlight(index) {
     const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
@@ -409,6 +422,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.close').onclick = closeSettingsModal;
 });
 
+//-------------------------------------------------------------------------------------------------------------------------
+
 function highlightTableRow(index) {
     const rowToHighlight = document.getElementById(`row-${index}`);
     if (rowToHighlight) {
@@ -417,12 +432,16 @@ function highlightTableRow(index) {
     }
 }
 
+//-------------------------------------------------------------------------------------------------------------------------
+
 function unhighlightTableRow(index) {
     const rowToUnhighlight = document.getElementById(`row-${index}`);
     if (rowToUnhighlight) {
         rowToUnhighlight.classList.remove('highlighted');
     }
 }
+
+//-------------------------------------------------------------------------------------------------------------------------
 
 function resetAllHighlights() {
     const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
@@ -450,6 +469,8 @@ document.addEventListener('DOMContentLoaded', function() {
     addHighlightedRowStyle();
     // Any other initialization code you might have
 });
+
+//-------------------------------------------------------------------------------------------------------------------------
 
 window.addEventListener('resize', function() {
     const modal = document.getElementById('settingsModal');

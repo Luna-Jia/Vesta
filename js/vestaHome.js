@@ -4,6 +4,8 @@ document.getElementById("open-btn").onclick = function() {
     document.getElementById("open-btn").style.display = 'none';
 }
 
+//-------------------------------------------------------------------------------------------------------------------------
+
 document.getElementById("close-btn").onclick = function() {
     document.getElementById("sidebar").classList.remove("open");
     document.getElementById("main").classList.remove("shifted");

@@ -50,8 +50,58 @@ function addWorkspace() {
 
     attachWorkspaceListeners(newWorkspace);
     switchToWorkspace(workspaceCount).then(() => {
-        // Any additional actions after switching workspace
+        // Reset file input and file list for the new workspace
+        resetFileInput();
+        // Clear any existing visualizations
+        clearVisualizations();
+        // Show import options for the new workspace
+        showImportOptions();
     });
+}
+
+function resetFileInput() {
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    const fileList = document.getElementById('fileList');
+    if (fileList) {
+        fileList.innerHTML = '';
+    }
+    // Reset the selectedFiles object
+    selectedFiles = {};
+}
+
+function clearVisualizations() {
+    // Clear map
+    if (workspaceData[currentWorkspace].map) {
+        workspaceData[currentWorkspace].map.eachLayer((layer) => {
+            if (layer instanceof L.TileLayer) return; // Keep the base map layer
+            workspaceData[currentWorkspace].map.removeLayer(layer);
+        });
+    }
+    
+    // Clear histogram
+    const histogramContainer = document.getElementById(`histogram${currentWorkspace}`);
+    if (histogramContainer) {
+        histogramContainer.innerHTML = '';
+    }
+    
+    // Clear table
+    const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+    if (tableContainer) {
+        tableContainer.innerHTML = '';
+    }
+    
+    // Clear property selects
+    const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
+    if (propertySelectContainer) {
+        propertySelectContainer.innerHTML = '';
+    }
+    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
+    if (histogramPropertySelectContainer) {
+        histogramPropertySelectContainer.innerHTML = '';
+    }
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------

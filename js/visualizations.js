@@ -1,3 +1,45 @@
+let featurePopupsEnabled = false;
+
+function toggleFeaturePopups(workspaceId) {
+    const telescopeIcon = document.querySelector(`#telescopeIcon${workspaceId}`);
+    featurePopupsEnabled = !featurePopupsEnabled;
+
+    if (featurePopupsEnabled) {
+        telescopeIcon.classList.add('active');
+        enableFeaturePopups(workspaceId);
+    } else {
+        telescopeIcon.classList.remove('active');
+        disableFeaturePopups(workspaceId);
+    }
+}
+
+function enableFeaturePopups(workspaceId) {
+    const geoJsonLayer = workspaceData[workspaceId].geoJsonLayer;
+
+    if (geoJsonLayer) {
+        geoJsonLayer.eachLayer(function(layer) {
+            layer.unbindTooltip();
+            if (layer.feature && layer.feature.properties) {
+                const popupContent = Object.entries(layer.feature.properties)
+                    .filter(([key]) => key !== 'originalStyle') // Exclude originalStyle
+                    .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+                    .join('<br>');
+                layer.bindTooltip(popupContent, {sticky: true});
+            }
+        });
+    }
+}
+
+function disableFeaturePopups(workspaceId) {
+    const geoJsonLayer = workspaceData[workspaceId].geoJsonLayer;
+
+    if (geoJsonLayer) {
+        geoJsonLayer.eachLayer(function(layer) {
+            layer.unbindTooltip();
+        });
+    }
+}
+
 function renderColorfulMap(geojson) {
     const propertyName = document.getElementById(`propertySelect${currentWorkspace}`).value;
     const map = workspaceData[currentWorkspace].map;
@@ -77,18 +119,11 @@ function renderColorfulMap(geojson) {
                 color: 'white',
                 fillOpacity: dataOpacity
             };
-            // Store the original style
             feature.properties.originalStyle = {...style};
             return style;
         },
         onEachFeature: function(feature, layer) {
-            if (feature.properties) {
-                layer.bindPopup(Object.keys(feature.properties)
-                    .filter(key => key !== 'originalStyle') // Filter out originalStyle
-                    .map(key => 
-                        `<strong>${key}:</strong> ${feature.properties[key]}`
-                    ).join('<br>'));
-            }
+            // Remove the bindPopup call here
             layer.on('click', function() {
                 const index = geojson.features.indexOf(feature);
                 toggleHighlight(index);
@@ -197,6 +232,13 @@ function showMap() {
             return;
         }
     }
+
+    // Reset telescope icon state
+    const telescopeIcon = document.querySelector(`#telescopeIcon${currentWorkspace}`);
+    if (telescopeIcon) {
+        telescopeIcon.classList.remove('active');
+    }
+    featurePopupsEnabled = false;
 
     // Populate property select if it hasn't been done yet
     if (propertySelectContainer.children.length === 0) {

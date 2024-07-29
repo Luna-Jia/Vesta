@@ -38,7 +38,7 @@ function addWorkspace() {
                         <button id="cursorIcon${workspaceCount}" class="map-icon" aria-label="Cursor tool" title="Cursor tool">
                             <i class="fas fa-mouse-pointer"></i>
                         </button>
-                        <button id="telescopeIcon${workspaceCount}" class="map-icon" aria-label="Telescope tool" title="Telescope tool">
+                        <button id="telescopeIcon${workspaceCount}" class="map-icon" aria-label="Toggle feature popups" title="Toggle feature popups" onclick="toggleFeaturePopups(${workspaceCount})">
                             <i class="fas fa-binoculars"></i>
                         </button>
                     </div>

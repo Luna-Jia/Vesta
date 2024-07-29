@@ -299,9 +299,26 @@ function selectHistogramProperty() {
 
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
     const histogramControlsContainer = document.getElementById(`histogramControlsContainer${currentWorkspace}`);
+    const histogramStatsElement = document.getElementById(`histogramStats${currentWorkspace}`);
     
+    if (!histogramElement) {
+        console.error(`Histogram element not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
+    if (!histogramControlsContainer) {
+        console.error(`Histogram controls container not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
+    if (!histogramStatsElement) {
+        console.error(`Histogram stats element not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
     histogramElement.style.display = 'block';
     histogramControlsContainer.style.display = 'block';
+    histogramStatsElement.style.display = 'block';
 
     // Ensure the select element exists
     let histogramPropertySelect = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
@@ -317,8 +334,10 @@ function selectHistogramProperty() {
         return;
     }
 
-    // Populate property select
-    populateHistogramPropertySelect(workspaceData[currentWorkspace].geojson.features[0].properties);
+    // Populate property select if it's empty
+    if (histogramPropertySelect.options.length === 0) {
+        populateHistogramPropertySelect(workspaceData[currentWorkspace].geojson.features[0].properties);
+    }
 
     // Remove existing event listeners to prevent duplicates
     histogramPropertySelect.removeEventListener('change', renderHistogram);
@@ -401,17 +420,43 @@ function renderHistogram() {
         return;
     }
 
-    // If numBins is larger than the number of unique values, adjust it
-    const uniqueValues = new Set(numericValues);
-    if (numBins > uniqueValues.size) {
-        numBins = uniqueValues.size;
-        histogramBinsInput.value = numBins;
-    }
+    // Calculate statistics
+    const count = numericValues.length;
+    const min = Math.min(...numericValues);
+    const max = Math.max(...numericValues);
+    const mean = numericValues.reduce((a, b) => a + b, 0) / count;
+    const binWidth = (max - min) / numBins;
 
+    // Update statistics display with 4 decimal places, no rounding
+    const statElements = [
+        { id: `statCount${currentWorkspace}`, value: count },
+        { id: `statMin${currentWorkspace}`, value: min },
+        { id: `statMax${currentWorkspace}`, value: max },
+        { id: `statMean${currentWorkspace}`, value: mean },
+        //{ id: `statBinWidth${currentWorkspace}`, value: binWidth }
+    ];
+
+    statElements.forEach(({ id, value }) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = typeof value === 'number' 
+                ? value.toFixed(4).replace(/\.?0+$/, '')
+                : value;
+        } else {
+            console.warn(`Element with id ${id} not found`);
+        }
+    });
+
+    // Create the trace with explicit bin settings
     const trace = {
         x: numericValues,
         type: 'histogram',
-        nbinsx: numBins,
+        xbins: {
+            start: min,
+            end: max,
+            size: binWidth
+        },
+        autobinx: false,
         marker: {
             color: 'rgba(31, 119, 180, 0.7)'
         }
@@ -421,11 +466,16 @@ function renderHistogram() {
         title: `Histogram of ${selectedProperty}`,
         xaxis: { title: selectedProperty },
         yaxis: { title: 'Count' },
-        bargap: 0.05
+        bargap: 0.1
     };
 
-    Plotly.newPlot(`histogram${currentWorkspace}`, [trace], layout).then(() => {
-        const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    if (!histogramElement) {
+        console.error(`Histogram element not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
+    Plotly.newPlot(histogramElement, [trace], layout).then(() => {
         histogramElement.on('plotly_click', (data) => {
             const clickedBin = data.points[0];
             const binStart = clickedBin.x0;
@@ -439,6 +489,8 @@ function renderHistogram() {
                 }
             });
         });
+    }).catch(error => {
+        console.error('Error plotting histogram:', error);
     });
 
     // Update the map to reflect the new property

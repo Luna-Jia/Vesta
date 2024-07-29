@@ -154,6 +154,11 @@ function populatePropertySelect(properties) {
 
 function populateHistogramPropertySelect(properties) {
     const selectElement = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
+    if (!selectElement) {
+        console.error(`Histogram property select element not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
     selectElement.innerHTML = '';
 
     for (let prop in properties) {
@@ -163,6 +168,14 @@ function populateHistogramPropertySelect(properties) {
             option.textContent = prop;
             selectElement.appendChild(option);
         }
+    }
+
+    // If no options were added, add a default option
+    if (selectElement.options.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No numeric properties found';
+        selectElement.appendChild(option);
     }
 }
 

@@ -16,8 +16,8 @@ let workspaceData = {
 
 let highlightColor = '#e6e6fa'; // Light purple
 let mapHighlightColor = '#9370db'; // Medium purple
-let mapHighlightWeight = 5;
-let mapSelectionStyle = 'fill'; // 'fill' or 'outline'
+let mapHighlightWeight = 2;
+let mapSelectionStyle = 'outline'; // 'fill' or 'outline'
 let dataOpacity = 0.7;
 
 //-------------------------------------------------------------------------------------------------------------------------

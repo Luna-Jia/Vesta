@@ -32,7 +32,7 @@ function openSettingsModal() {
     document.getElementById('dataOpacity').value = dataOpacity;
 
     // Position the modal near the settings button
-    const settingsButton = document.getElementById('settingsButton');
+    const settingsButton = document.getElementById('settingsIcon1');
     const buttonRect = settingsButton.getBoundingClientRect();
     const modalContent = modal.querySelector('.modal-content');
     modalContent.style.position = 'absolute';

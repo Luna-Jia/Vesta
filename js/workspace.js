@@ -151,39 +151,19 @@ function populatePropertySelect(properties) {
 }
 // ------------------------------------------------------------------------------------------------------------------------------------
 
+
 function populateHistogramPropertySelect(properties) {
-    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
-    histogramPropertySelectContainer.innerHTML = '';
-
-    const histogramLabel = document.createElement('label');
-    histogramLabel.htmlFor = `histogramPropertySelect${currentWorkspace}`;
-    histogramLabel.className = 'form-label';
-    histogramLabel.textContent = 'Select histogram property:';
-    histogramPropertySelectContainer.appendChild(histogramLabel);
-
-    const histogramSelect = document.createElement('select');
-    histogramSelect.id = `histogramPropertySelect${currentWorkspace}`;
-    histogramSelect.className = 'form-select histogramPropertySelect';
+    const selectElement = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
+    selectElement.innerHTML = '';
 
     for (let prop in properties) {
         if (typeof properties[prop] === 'number') {
-            let option = document.createElement('option');
+            const option = document.createElement('option');
             option.value = prop;
             option.textContent = prop;
-            histogramSelect.appendChild(option);
+            selectElement.appendChild(option);
         }
     }
-
-    histogramSelect.addEventListener('change', function() {
-        if (workspaceData[currentWorkspace].geojson) {
-            renderHistogram();
-        }
-    });
-
-    histogramPropertySelectContainer.appendChild(histogramSelect);
-
-    // Trigger change event to render the histogram with the first property
-    histogramSelect.dispatchEvent(new Event('change'));
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------

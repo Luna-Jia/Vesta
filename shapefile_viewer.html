@@ -152,7 +152,14 @@
                         <div id="propertySelectContainer1"></div>
                     </div>
                     <div class="col-md-6">
-                        <div id="histogramPropertySelectContainer1" style="display: none;"></div>
+                        <div id="histogramControlsContainer1" style="display: none;">
+                            <label for="histogramPropertySelect1" class="form-label">Select Histogram Property:</label>
+                            <select id="histogramPropertySelect1" class="form-control"></select>
+                            <div class="mt-2">
+                                <label for="histogramBins1" class="form-label">Number of Bins:</label>
+                                <input type="number" id="histogramBins1" class="form-control" min="1" value="10">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="row">

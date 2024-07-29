@@ -161,6 +161,7 @@ function updateMapHighlights(colorChanged, styleChanged, opacityChanged) {
         }
     });
 }
+
 //-------------------------------------------------------------------------------------------------------------------------
 
 function toggleHighlight(index) {
@@ -181,6 +182,7 @@ function toggleHighlight(index) {
             });
         }
         unhighlightTableRow(index);
+        unhighlightHistogramBar(index);
     } else {
         highlightedFeatures.add(index);
         if (layer) {
@@ -204,6 +206,7 @@ function toggleHighlight(index) {
             layer.bringToFront();
         }
         highlightTableRow(index);
+        highlightHistogramBar(index);
     }
 }
 
@@ -460,6 +463,14 @@ function resetAllHighlights() {
         unhighlightTableRow(index);
     });
     highlightedFeatures.clear();
+
+    // Reset histogram colors if it exists
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    if (histogramElement && histogramElement.data) {
+        Plotly.restyle(histogramElement, {
+            'marker.color': 'rgba(31, 119, 180, 0.7)'
+        });
+    }
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------

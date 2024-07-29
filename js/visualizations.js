@@ -523,7 +523,9 @@ function renderHistogram() {
     const min = Math.min(...numericValues);
     const max = Math.max(...numericValues);
     const mean = numericValues.reduce((a, b) => a + b, 0) / count;
-    const binWidth = (max - min) / numBins;
+
+    // Calculate bin width to ensure max value is included
+    const binWidth = (max - min) / (numBins - 1);  // Subtract 1 to include the max value
 
     // Update statistics display with 4 decimal places, no rounding
     const statElements = [
@@ -531,7 +533,6 @@ function renderHistogram() {
         { id: `statMin${currentWorkspace}`, value: min },
         { id: `statMax${currentWorkspace}`, value: max },
         { id: `statMean${currentWorkspace}`, value: mean },
-        // { id: `statBinWidth${currentWorkspace}`, value: binWidth } // Commented out as requested
     ];
 
     statElements.forEach(({ id, value }) => {
@@ -548,7 +549,7 @@ function renderHistogram() {
     // Calculate customdata
     const binCounts = {};
     numericValues.forEach((value, index) => {
-        const binIndex = Math.floor((value - min) / binWidth);
+        const binIndex = Math.min(Math.floor((value - min) / binWidth), numBins - 1);
         if (!binCounts[binIndex]) {
             binCounts[binIndex] = { count: 0, indices: [] };
         }
@@ -562,7 +563,7 @@ function renderHistogram() {
         type: 'histogram',
         xbins: {
             start: min,
-            end: max,
+            end: max + binWidth,  // Add one more binWidth to include the max value
             size: binWidth
         },
         autobinx: false,
@@ -574,7 +575,11 @@ function renderHistogram() {
 
     const layout = {
         title: `Histogram of ${selectedProperty}`,
-        xaxis: { title: selectedProperty },
+        xaxis: { 
+            title: selectedProperty,
+            tickformat: '.4f',  // Format x-axis ticks to 4 decimal places
+            range: [min, max + binWidth]  // Ensure the x-axis includes the full range
+        },
         yaxis: { title: 'Count' },
         bargap: 0.1,
         dragmode: 'select',  // Enable box select by default

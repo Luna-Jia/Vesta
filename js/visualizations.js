@@ -144,6 +144,17 @@ function unhighlightHistogramBar(index) {
     }
 }
 
+function hideMapTools() {
+    const mapToolsContainer = document.querySelector(`#map${currentWorkspace} .map-tools-container`);
+    if (mapToolsContainer) {
+        mapToolsContainer.style.display = 'none';
+    }
+    const settingsIcon = document.querySelector(`#map${currentWorkspace} .settings-icon`);
+    if (settingsIcon) {
+        settingsIcon.style.display = 'none';
+    }
+}
+
 // ------------------------------------------------------------------------------------------------------------------------------------
 
 function showMap() {
@@ -154,12 +165,25 @@ function showMap() {
     }
 
     document.getElementById(`map${currentWorkspace}`).style.display = 'block';
-    document.getElementById(`histogram${currentWorkspace}`).style.display = 'none';
+    // Keep histogram visible
+    // document.getElementById(`histogram${currentWorkspace}`).style.display = 'none';
     document.getElementById(`tableContainer${currentWorkspace}`).style.display = 'none';
     
     const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
     propertySelectContainer.style.display = 'block';
     
+    // Show map tools
+    const mapToolsContainer = document.querySelector(`#map${currentWorkspace} .map-tools-container`);
+    if (mapToolsContainer) {
+        mapToolsContainer.style.display = 'flex';
+    }
+
+    // Show settings icon
+    const settingsIcon = document.querySelector(`#map${currentWorkspace} .settings-icon`);
+    if (settingsIcon) {
+        settingsIcon.style.display = 'flex';
+    }
+
     // Initialize map if it doesn't exist
     if (!workspaceData[currentWorkspace].map) {
         const mapContainer = document.getElementById(`map${currentWorkspace}`);
@@ -168,23 +192,6 @@ function showMap() {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(workspaceData[currentWorkspace].map);
-
-            // Add settings button to the map
-            const settingsButton = L.control({position: 'topright'});
-            settingsButton.onAdd = function(map) {
-                const button = L.DomUtil.create('button', 'leaflet-bar leaflet-control');
-                button.innerHTML = '<i class="fas fa-cog"></i>';
-                button.setAttribute('id', 'settingsButton');
-                button.setAttribute('title', 'Settings');
-                button.style.backgroundColor = 'white';
-                button.style.width = '30px';
-                button.style.height = '30px';
-                button.style.border = 'none';
-                button.style.cursor = 'pointer';
-                button.onclick = openSettingsModal;
-                return button;
-            };
-            settingsButton.addTo(workspaceData[currentWorkspace].map);
         } else {
             console.error(`Map container not found for workspace ${currentWorkspace}`);
             return;

@@ -381,3 +381,59 @@
 .histogram-stats li {
     margin-bottom: 5px;
 }
+
+.map-tools-container {
+    position: absolute;
+    top: 10px;
+    left: 50px;
+    z-index: 1000;
+    display: flex;
+    gap: 5px;
+}
+
+.map-icon {
+    background-color: #fff;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.map-icon:hover {
+    background-color: #f4f4f4;
+}
+
+.map-icon i {
+    font-size: 16px;
+    color: #333;
+}
+
+.settings-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+#handIcon1 {
+    top: 50px;
+    right: 10px;
+}
+
+#cursorIcon1 {
+    top: 90px;
+    right: 10px;
+}
+
+#telescopeIcon1 {
+    top: 130px;
+    right: 10px;
+}
+.map-icon.active {
+    background-color: rgba(173, 216, 230, 0.7); /* Light blue with some transparency */
+}

@@ -18,15 +18,52 @@ function addWorkspace() {
                 <div id="propertySelectContainer${workspaceCount}"></div>
             </div>
             <div class="col-md-6">
-                <div id="histogramPropertySelectContainer${workspaceCount}" style="display: none;"></div>
+                <div id="histogramControlsContainer${workspaceCount}" style="display: none;">
+                    <label for="histogramPropertySelect${workspaceCount}" class="form-label">Select Histogram Property:</label>
+                    <select id="histogramPropertySelect${workspaceCount}" class="form-control"></select>
+                    <div class="mt-2">
+                        <label for="histogramBins${workspaceCount}" class="form-label">Number of Bins:</label>
+                        <input type="number" id="histogramBins${workspaceCount}" class="form-control" min="1" value="10">
+                    </div>
+                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
-                <div id="map${workspaceCount}" class="map"></div>
+                <div id="map${workspaceCount}" class="map">
+                    <div class="map-tools-container" style="display: none;">
+                        <button id="handIcon${workspaceCount}" class="map-icon" aria-label="Hand tool" title="Hand tool">
+                            <i class="fas fa-hand-paper"></i>
+                        </button>
+                        <button id="cursorIcon${workspaceCount}" class="map-icon" aria-label="Cursor tool" title="Cursor tool">
+                            <i class="fas fa-mouse-pointer"></i>
+                        </button>
+                        <button id="telescopeIcon${workspaceCount}" class="map-icon" aria-label="Toggle feature popups" title="Toggle feature popups" onclick="toggleFeaturePopups(${workspaceCount})">
+                            <i class="fas fa-binoculars"></i>
+                        </button>
+                    </div>
+                    <button id="settingsIcon${workspaceCount}" class="map-icon settings-icon" aria-label="Settings" title="Settings" onclick="openSettingsModal()" style="display: none;">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
             </div>
             <div class="col-md-6">
-                <div id="histogram${workspaceCount}" class="histogram"></div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="histogram${workspaceCount}" class="histogram"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="histogramStats${workspaceCount}" class="histogram-stats" style="display: none;">
+                            <h5>Statistics</h5>
+                            <ul>
+                                <li>Count: <span id="statCount${workspaceCount}"></span></li>
+                                <li>Minimum: <span id="statMin${workspaceCount}"></span></li>
+                                <li>Maximum: <span id="statMax${workspaceCount}"></span></li>
+                                <li>Mean: <span id="statMean${workspaceCount}"></span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="row mt-3">

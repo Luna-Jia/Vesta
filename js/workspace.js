@@ -151,39 +151,32 @@ function populatePropertySelect(properties) {
 }
 // ------------------------------------------------------------------------------------------------------------------------------------
 
+
 function populateHistogramPropertySelect(properties) {
-    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
-    histogramPropertySelectContainer.innerHTML = '';
+    const selectElement = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
+    if (!selectElement) {
+        console.error(`Histogram property select element not found for workspace ${currentWorkspace}`);
+        return;
+    }
 
-    const histogramLabel = document.createElement('label');
-    histogramLabel.htmlFor = `histogramPropertySelect${currentWorkspace}`;
-    histogramLabel.className = 'form-label';
-    histogramLabel.textContent = 'Select histogram property:';
-    histogramPropertySelectContainer.appendChild(histogramLabel);
-
-    const histogramSelect = document.createElement('select');
-    histogramSelect.id = `histogramPropertySelect${currentWorkspace}`;
-    histogramSelect.className = 'form-select histogramPropertySelect';
+    selectElement.innerHTML = '';
 
     for (let prop in properties) {
         if (typeof properties[prop] === 'number') {
-            let option = document.createElement('option');
+            const option = document.createElement('option');
             option.value = prop;
             option.textContent = prop;
-            histogramSelect.appendChild(option);
+            selectElement.appendChild(option);
         }
     }
 
-    histogramSelect.addEventListener('change', function() {
-        if (workspaceData[currentWorkspace].geojson) {
-            renderHistogram();
-        }
-    });
-
-    histogramPropertySelectContainer.appendChild(histogramSelect);
-
-    // Trigger change event to render the histogram with the first property
-    histogramSelect.dispatchEvent(new Event('change'));
+    // If no options were added, add a default option
+    if (selectElement.options.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No numeric properties found';
+        selectElement.appendChild(option);
+    }
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------

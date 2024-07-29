@@ -161,6 +161,21 @@ function updateMapHighlights(colorChanged, styleChanged, opacityChanged) {
         }
     });
 }
+
+function updateHistogramSelection() {
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    if (histogramElement && histogramElement.data) {
+        const selectedProperty = document.getElementById(`histogramPropertySelect${currentWorkspace}`).value;
+        const selectedPoints = workspaceData[currentWorkspace].geojson.features.map((feature, i) => 
+            workspaceData[currentWorkspace].highlightedFeatures.has(i) ? i : null
+        ).filter(i => i !== null);
+
+        Plotly.restyle(histogramElement, {
+            selectedpoints: [selectedPoints]
+        });
+    }
+}
+
 //-------------------------------------------------------------------------------------------------------------------------
 
 function toggleHighlight(index) {
@@ -205,6 +220,11 @@ function toggleHighlight(index) {
         }
         highlightTableRow(index);
     }
+
+    // Update histogram selection
+    updateHistogramSelection();
+    // Update histogram highlight
+    updateHistogramHighlight(workspaceData[currentWorkspace].highlightedFeatures);
 }
 
 function updateDataLayerOpacity() {
@@ -427,8 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function highlightTableRow(index) {
     const rowToHighlight = document.getElementById(`row-${index}`);
     if (rowToHighlight) {
-        rowToHighlight.classList.add('highlighted');
-        rowToHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rowToHighlight.classList.add('highlighted-row');
     }
 }
 
@@ -437,7 +456,7 @@ function highlightTableRow(index) {
 function unhighlightTableRow(index) {
     const rowToUnhighlight = document.getElementById(`row-${index}`);
     if (rowToUnhighlight) {
-        rowToUnhighlight.classList.remove('highlighted');
+        rowToUnhighlight.classList.remove('highlighted-row');
     }
 }
 
@@ -445,23 +464,79 @@ function unhighlightTableRow(index) {
 
 function resetAllHighlights() {
     const highlightedFeatures = workspaceData[currentWorkspace].highlightedFeatures;
-    highlightedFeatures.forEach(index => {
-        const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
-        if (layer) {
-            const originalStyle = layer.feature.properties.originalStyle;
-            layer.setStyle({
-                fillColor: originalStyle.fillColor,
-                fillOpacity: dataOpacity,
-                weight: 2,
-                color: 'white',
-                opacity: 1
-            });
-        }
+    const allLayers = workspaceData[currentWorkspace].geoJsonLayer.getLayers();
+    
+    allLayers.forEach((layer, index) => {
+        const originalStyle = layer.feature.properties.originalStyle;
+        layer.setStyle({
+            fillColor: originalStyle.fillColor,
+            fillOpacity: dataOpacity,
+            weight: 2,
+            color: 'white',
+            opacity: 1
+        });
         unhighlightTableRow(index);
     });
+
     highlightedFeatures.clear();
+
+    // Reset histogram colors
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    if (histogramElement && histogramElement.data) {
+        Plotly.restyle(histogramElement, {
+            'marker.color': 'rgba(31, 119, 180, 0.7)'
+        });
+    }
 }
 
+function updateHistogramHighlight(selectedIndices) {
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    if (histogramElement && histogramElement.data) {
+        const colors = histogramElement.data[0].customdata.map(binData => {
+            const binSelectedCount = binData.indices.filter(index => selectedIndices.has(index)).length;
+            const binTotalCount = binData.count;
+            const ratio = binSelectedCount / binTotalCount;
+            return `rgba(31, 119, 180, ${0.7 + (0.3 * ratio)})`;
+        });
+
+        Plotly.restyle(histogramElement, {
+            'marker.color': [colors]
+        });
+    }
+}
+
+function handleHistogramSelection(eventData) {
+    if (!eventData || !eventData.points || eventData.points.length === 0) {
+        resetAllHighlights();
+        return;
+    }
+
+    const selectedIndices = new Set();
+
+    eventData.points.forEach(point => {
+        if (point.customdata) {
+            const binData = point.customdata;
+            binData.indices.forEach(index => selectedIndices.add(index));
+        } else {
+            console.warn('Customdata not found for histogram bar', point);
+        }
+    });
+
+    highlightSelectedFeatures(selectedIndices);
+}
+
+function highlightSelectedFeatures(selectedIndices) {
+    // Reset all highlights first
+    resetAllHighlights();
+
+    // Highlight selected features on map and table
+    selectedIndices.forEach(index => {
+        toggleHighlight(index);
+    });
+
+    // Update workspaceData to reflect new selections
+    workspaceData[currentWorkspace].highlightedFeatures = selectedIndices;
+}
 // ------------------------------------------------------------------------------------------------------------------------------------
 
 // Initialize the application

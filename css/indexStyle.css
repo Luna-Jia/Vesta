@@ -249,7 +249,7 @@
 }
 
 .highlighted-row {
-    background-color: #bfb6f8 !important; /* Light purple */
+    background-color: #e6e6fa !important; /* Light purple */
     font-weight: bold;
 }
 
@@ -359,4 +359,25 @@
 /* Ensure the map container has a relative positioning */
 .map {
     position: relative;
+}
+
+.histogram-stats {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 20px;
+}
+
+.histogram-stats h5 {
+    margin-bottom: 10px;
+}
+
+.histogram-stats ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.histogram-stats li {
+    margin-bottom: 5px;
 }

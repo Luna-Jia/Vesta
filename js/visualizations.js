@@ -117,11 +117,37 @@ function renderColorfulMap(geojson) {
     workspaceData[currentWorkspace].legend.addTo(map);
 }
 
+function highlightHistogramBar(index) {
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    if (histogramElement && histogramElement.data) {
+        const selectedProperty = document.getElementById(`histogramPropertySelect${currentWorkspace}`).value;
+        const value = workspaceData[currentWorkspace].geojson.features[index].properties[selectedProperty];
+        
+        Plotly.restyle(histogramElement, {
+            'marker.color': (_, data) => {
+                return data[0].x.map((x, i) => {
+                    const binStart = data[0].xbins.start + i * data[0].xbins.size;
+                    const binEnd = binStart + data[0].xbins.size;
+                    return (value >= binStart && value < binEnd) ? mapHighlightColor : 'rgba(31, 119, 180, 0.7)';
+                });
+            }
+        });
+    }
+}
+
+function unhighlightHistogramBar(index) {
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    if (histogramElement && histogramElement.data) {
+        Plotly.restyle(histogramElement, {
+            'marker.color': 'rgba(31, 119, 180, 0.7)'
+        });
+    }
+}
+
 // ------------------------------------------------------------------------------------------------------------------------------------
 
 function showMap() {
     console.log("Showing Map");
-    resetAllHighlights();
     if (!workspaceData[currentWorkspace].geojson) {
         alert('Please upload and process a shapefile first.');
         return;
@@ -143,7 +169,6 @@ function showMap() {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(workspaceData[currentWorkspace].map);
 
-            // Add settings button to the map
             // Add settings button to the map
             const settingsButton = L.control({position: 'topright'});
             settingsButton.onAdd = function(map) {
@@ -266,36 +291,147 @@ function showTable() {
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
-
 function selectHistogramProperty() {
-    console.log("Showing Histogram");
     if (!workspaceData[currentWorkspace].geojson) {
         alert('Please upload and process a shapefile first.');
         return;
     }
 
-    const mapElement = document.getElementById(`map${currentWorkspace}`);
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
-    const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
-    const propertySelectContainer = document.getElementById(`propertySelectContainer${currentWorkspace}`);
-    const histogramPropertySelectContainer = document.getElementById(`histogramPropertySelectContainer${currentWorkspace}`);
+    const histogramControlsContainer = document.getElementById(`histogramControlsContainer${currentWorkspace}`);
+    const histogramStatsElement = document.getElementById(`histogramStats${currentWorkspace}`);
+    
+    if (!histogramElement) {
+        console.error(`Histogram element not found for workspace ${currentWorkspace}`);
+        return;
+    }
 
-    // Show all elements
-    mapElement.style.display = 'block';
+    if (!histogramControlsContainer) {
+        console.error(`Histogram controls container not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
+    if (!histogramStatsElement) {
+        console.error(`Histogram stats element not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
     histogramElement.style.display = 'block';
-    tableContainer.style.display = 'block';
-    propertySelectContainer.style.display = 'block';
-    histogramPropertySelectContainer.style.display = 'block';
+    histogramControlsContainer.style.display = 'block';
+    histogramStatsElement.style.display = 'block';
 
-    // Populate histogram property select if it hasn't been done yet
-    if (histogramPropertySelectContainer.children.length === 0) {
+    // Ensure the select element exists
+    let histogramPropertySelect = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
+    if (!histogramPropertySelect) {
+        console.error(`Histogram property select not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
+    // Ensure the bins input exists
+    let histogramBinsInput = document.getElementById(`histogramBins${currentWorkspace}`);
+    if (!histogramBinsInput) {
+        console.error(`Histogram bins input not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
+    // Populate property select if it's empty
+    if (histogramPropertySelect.options.length === 0) {
         populateHistogramPropertySelect(workspaceData[currentWorkspace].geojson.features[0].properties);
     }
 
-    // Render the histogram
+    // Remove existing event listeners to prevent duplicates
+    histogramPropertySelect.removeEventListener('change', renderHistogram);
+    histogramBinsInput.removeEventListener('change', renderHistogram);
+
+    // Add new event listeners
+    histogramPropertySelect.addEventListener('change', renderHistogram);
+    histogramBinsInput.addEventListener('change', renderHistogram);
+
+    // Render the initial histogram
     renderHistogram();
+
+    // Push the table down
+    const tableContainer = document.getElementById(`tableContainer${currentWorkspace}`);
+    if (tableContainer) {
+        tableContainer.style.marginTop = '20px';
+    }
 }
 
+function populateHistogramPropertySelect(properties) {
+    const selectElement = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
+    if (!selectElement) {
+        console.error(`Histogram property select element not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
+    selectElement.innerHTML = '';
+
+    for (let prop in properties) {
+        if (typeof properties[prop] === 'number') {
+            const option = document.createElement('option');
+            option.value = prop;
+            option.textContent = prop;
+            selectElement.appendChild(option);
+        }
+    }
+
+    // If no options were added, add a default option
+    if (selectElement.options.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No numeric properties found';
+        selectElement.appendChild(option);
+    }
+}
+
+function handleHistogramSelection(eventData) {
+    if (!eventData || !eventData.points || eventData.points.length === 0) {
+        resetAllHighlights();
+        return;
+    }
+
+    const selectedIndices = new Set();
+
+    eventData.points.forEach(point => {
+        if (point.customdata) {
+            const binData = point.customdata;
+            const binIndices = binData.indices;
+
+            // Add all indices from this bin to the selected set
+            binIndices.forEach(index => selectedIndices.add(index));
+        } else {
+            console.warn('Customdata not found for histogram bar', point);
+        }
+    });
+
+    highlightSelectedFeatures(selectedIndices);
+    updateHistogramHighlight(selectedIndices);
+}
+
+function highlightSelectedFeatures(selectedIndices) {
+    // Reset all highlights first
+    resetAllHighlights();
+
+    // Highlight selected features on map and table
+    selectedIndices.forEach(index => {
+        const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+        if (layer) {
+            layer.setStyle({
+                fillColor: mapHighlightColor,
+                fillOpacity: dataOpacity,
+                weight: mapHighlightWeight,
+                color: mapHighlightColor
+            });
+            layer.bringToFront();
+        }
+        highlightTableRow(index);
+    });
+
+    // Update workspaceData to reflect new selections
+    workspaceData[currentWorkspace].highlightedFeatures = selectedIndices;
+
+    updateHistogramHighlight(selectedIndices);
+}
 // ------------------------------------------------------------------------------------------------------------------------------------
 
 function renderHistogram() {
@@ -306,40 +442,166 @@ function renderHistogram() {
 
     const geojson = workspaceData[currentWorkspace].geojson;
     const histogramPropertySelect = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
+    const histogramBinsInput = document.getElementById(`histogramBins${currentWorkspace}`);
     
-    if (!histogramPropertySelect) {
-        console.error('Histogram property select not found');
+    if (!histogramPropertySelect || !histogramBinsInput) {
+        console.error('Histogram property select or bins input not found');
         return;
     }
 
-    const property = histogramPropertySelect.value;
-    const values = geojson.features.map(f => f.properties[property]).filter(v => !isNaN(v));
+    const selectedProperty = histogramPropertySelect.value;
+    let numBins = parseInt(histogramBinsInput.value, 10);
 
-    // Calculate the number of bins (Sturges' formula)
-    const binCount = Math.ceil(Math.log2(values.length)) + 1;
+    // Ensure numBins is a positive integer
+    if (isNaN(numBins) || numBins < 1) {
+        alert('Please enter a valid positive number for bins.');
+        return;
+    }
+    
+    // Extract values for the selected property
+    const values = geojson.features.map(f => f.properties[selectedProperty]);
 
-    // Create histogram data
-    const trace = {
-        x: values,
-        type: 'histogram',
-        nbinsx: binCount,
-        marker: {
-            color: 'rgba(100, 150, 200, 0.7)',
-            line: {
-                color: 'rgba(100, 150, 200, 1)',
-                width: 1
-            }
+    // Filter out non-numeric values
+    const numericValues = values.filter(v => typeof v === 'number' && !isNaN(v));
+
+    if (numericValues.length === 0) {
+        alert('No numeric values found for the selected property.');
+        return;
+    }
+
+    // Calculate statistics
+    const count = numericValues.length;
+    const min = Math.min(...numericValues);
+    const max = Math.max(...numericValues);
+    const mean = numericValues.reduce((a, b) => a + b, 0) / count;
+    const binWidth = (max - min) / numBins;
+
+    // Update statistics display with 4 decimal places, no rounding
+    const statElements = [
+        { id: `statCount${currentWorkspace}`, value: count },
+        { id: `statMin${currentWorkspace}`, value: min },
+        { id: `statMax${currentWorkspace}`, value: max },
+        { id: `statMean${currentWorkspace}`, value: mean },
+        // { id: `statBinWidth${currentWorkspace}`, value: binWidth } // Commented out as requested
+    ];
+
+    statElements.forEach(({ id, value }) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = typeof value === 'number' 
+                ? value.toFixed(4).replace(/\.?0+$/, '')
+                : value;
+        } else {
+            console.warn(`Element with id ${id} not found`);
         }
+    });
+
+    // Calculate customdata
+    const binCounts = {};
+    numericValues.forEach((value, index) => {
+        const binIndex = Math.floor((value - min) / binWidth);
+        if (!binCounts[binIndex]) {
+            binCounts[binIndex] = { count: 0, indices: [] };
+        }
+        binCounts[binIndex].count++;
+        binCounts[binIndex].indices.push(index);
+    });
+
+    // Create the trace with explicit bin settings
+    const trace = {
+        x: numericValues,
+        type: 'histogram',
+        xbins: {
+            start: min,
+            end: max,
+            size: binWidth
+        },
+        autobinx: false,
+        marker: {
+            color: 'rgba(31, 119, 180, 0.7)'
+        },
+        customdata: Object.values(binCounts),
     };
 
     const layout = {
-        title: `Histogram of ${property}`,
-        xaxis: { title: property },
+        title: `Histogram of ${selectedProperty}`,
+        xaxis: { title: selectedProperty },
         yaxis: { title: 'Count' },
-        bargap: 0.05
+        bargap: 0.1,
+        dragmode: 'select',  // Enable box select by default
     };
 
-    Plotly.newPlot(`histogram${currentWorkspace}`, [trace], layout);
+    const config = {
+        modeBarButtonsToAdd: [
+            {
+                name: 'toggleLassoSelect',
+                title: 'Toggle Lasso Select',
+                icon: Plotly.Icons.lasso,
+                click: function(gd) {
+                    const newDragMode = gd._fullLayout.dragmode === 'lasso' ? 'select' : 'lasso';
+                    Plotly.relayout(gd, {dragmode: newDragMode});
+                }
+            }
+        ]
+    };
+
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    if (!histogramElement) {
+        console.error(`Histogram element not found for workspace ${currentWorkspace}`);
+        return;
+    }
+
+    Plotly.newPlot(histogramElement, [trace], layout, config).then(() => {
+        histogramElement.on('plotly_selected', handleHistogramSelection);
+    }).catch(error => {
+        console.error('Error plotting histogram:', error);
+    });
+
+    // Update the map to reflect the new property
+    updateMapProperty(selectedProperty);
+}
+
+
+
+function updateMapProperty(property) {
+    if (workspaceData[currentWorkspace].geoJsonLayer) {
+        const geojson = workspaceData[currentWorkspace].geojson;
+        const values = geojson.features.map(f => f.properties[property]);
+        const numericValues = values.filter(v => typeof v === 'number' && !isNaN(v));
+        const min = Math.min(...numericValues);
+        const max = Math.max(...numericValues);
+
+        workspaceData[currentWorkspace].geoJsonLayer.setStyle(feature => ({
+            fillColor: getColor(feature.properties[property], min, max),
+            weight: 2,
+            opacity: 1,
+            color: 'white',
+            fillOpacity: dataOpacity
+        }));
+
+        // Update legend
+        updateLegend(property, min, max);
+    }
+}
+
+function updateLegend(property, min, max) {
+    if (workspaceData[currentWorkspace].legend) {
+        workspaceData[currentWorkspace].map.removeControl(workspaceData[currentWorkspace].legend);
+    }
+
+    workspaceData[currentWorkspace].legend = L.control({position: 'bottomright'});
+    workspaceData[currentWorkspace].legend.onAdd = function (map) {
+        const div = L.DomUtil.create('div', 'info legend');
+        const grades = [min, min + (max-min)/4, min + (max-min)/2, min + 3*(max-min)/4, max];
+        div.innerHTML += `<h4>${property}</h4>`;
+        for (let i = 0; i < grades.length; i++) {
+            div.innerHTML +=
+                '<i style="background:' + getColor(grades[i], min, max) + '"></i> ' +
+                grades[i].toFixed(2) + (grades[i + 1] ? '&ndash;' + grades[i + 1].toFixed(2) + '<br>' : '+');
+        }
+        return div;
+    };
+    workspaceData[currentWorkspace].legend.addTo(workspaceData[currentWorkspace].map);
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------

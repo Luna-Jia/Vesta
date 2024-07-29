@@ -312,24 +312,31 @@ function renderHistogram() {
         return;
     }
 
-    const yProperty = histogramPropertySelect.value;
-    const xProperty = geojson.features[0].properties.hasOwnProperty('ID') ? 'ID' : 
-                    geojson.features[0].properties.hasOwnProperty('Object Id') ? 'Object Id' : 
-                    Object.keys(geojson.features[0].properties)[0];
+    const property = histogramPropertySelect.value;
+    const values = geojson.features.map(f => f.properties[property]).filter(v => !isNaN(v));
 
-    const xValues = geojson.features.map(f => f.properties[xProperty]);
-    const yValues = geojson.features.map(f => f.properties[yProperty]);
+    // Calculate the number of bins (Sturges' formula)
+    const binCount = Math.ceil(Math.log2(values.length)) + 1;
 
+    // Create histogram data
     const trace = {
-        x: xValues,
-        y: yValues,
-        type: 'bar'
+        x: values,
+        type: 'histogram',
+        nbinsx: binCount,
+        marker: {
+            color: 'rgba(100, 150, 200, 0.7)',
+            line: {
+                color: 'rgba(100, 150, 200, 1)',
+                width: 1
+            }
+        }
     };
 
     const layout = {
-        title: `Histogram of ${yProperty}`,
-        xaxis: { title: xProperty },
-        yaxis: { title: yProperty }
+        title: `Histogram of ${property}`,
+        xaxis: { title: property },
+        yaxis: { title: 'Count' },
+        bargap: 0.05
     };
 
     Plotly.newPlot(`histogram${currentWorkspace}`, [trace], layout);

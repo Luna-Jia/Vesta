@@ -383,6 +383,55 @@ function populateHistogramPropertySelect(properties) {
         selectElement.appendChild(option);
     }
 }
+
+function handleHistogramSelection(eventData) {
+    if (!eventData || !eventData.points || eventData.points.length === 0) {
+        resetAllHighlights();
+        return;
+    }
+
+    const selectedIndices = new Set();
+
+    eventData.points.forEach(point => {
+        if (point.customdata) {
+            const binData = point.customdata;
+            const binIndices = binData.indices;
+
+            // Add all indices from this bin to the selected set
+            binIndices.forEach(index => selectedIndices.add(index));
+        } else {
+            console.warn('Customdata not found for histogram bar', point);
+        }
+    });
+
+    highlightSelectedFeatures(selectedIndices);
+    updateHistogramHighlight(selectedIndices);
+}
+
+function highlightSelectedFeatures(selectedIndices) {
+    // Reset all highlights first
+    resetAllHighlights();
+
+    // Highlight selected features on map and table
+    selectedIndices.forEach(index => {
+        const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+        if (layer) {
+            layer.setStyle({
+                fillColor: mapHighlightColor,
+                fillOpacity: dataOpacity,
+                weight: mapHighlightWeight,
+                color: mapHighlightColor
+            });
+            layer.bringToFront();
+        }
+        highlightTableRow(index);
+    });
+
+    // Update workspaceData to reflect new selections
+    workspaceData[currentWorkspace].highlightedFeatures = selectedIndices;
+
+    updateHistogramHighlight(selectedIndices);
+}
 // ------------------------------------------------------------------------------------------------------------------------------------
 
 function renderHistogram() {
@@ -433,7 +482,7 @@ function renderHistogram() {
         { id: `statMin${currentWorkspace}`, value: min },
         { id: `statMax${currentWorkspace}`, value: max },
         { id: `statMean${currentWorkspace}`, value: mean },
-        //{ id: `statBinWidth${currentWorkspace}`, value: binWidth }
+        // { id: `statBinWidth${currentWorkspace}`, value: binWidth } // Commented out as requested
     ];
 
     statElements.forEach(({ id, value }) => {
@@ -445,6 +494,17 @@ function renderHistogram() {
         } else {
             console.warn(`Element with id ${id} not found`);
         }
+    });
+
+    // Calculate customdata
+    const binCounts = {};
+    numericValues.forEach((value, index) => {
+        const binIndex = Math.floor((value - min) / binWidth);
+        if (!binCounts[binIndex]) {
+            binCounts[binIndex] = { count: 0, indices: [] };
+        }
+        binCounts[binIndex].count++;
+        binCounts[binIndex].indices.push(index);
     });
 
     // Create the trace with explicit bin settings
@@ -459,14 +519,30 @@ function renderHistogram() {
         autobinx: false,
         marker: {
             color: 'rgba(31, 119, 180, 0.7)'
-        }
+        },
+        customdata: Object.values(binCounts),
     };
 
     const layout = {
         title: `Histogram of ${selectedProperty}`,
         xaxis: { title: selectedProperty },
         yaxis: { title: 'Count' },
-        bargap: 0.1
+        bargap: 0.1,
+        dragmode: 'select',  // Enable box select by default
+    };
+
+    const config = {
+        modeBarButtonsToAdd: [
+            {
+                name: 'toggleLassoSelect',
+                title: 'Toggle Lasso Select',
+                icon: Plotly.Icons.lasso,
+                click: function(gd) {
+                    const newDragMode = gd._fullLayout.dragmode === 'lasso' ? 'select' : 'lasso';
+                    Plotly.relayout(gd, {dragmode: newDragMode});
+                }
+            }
+        ]
     };
 
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
@@ -475,20 +551,8 @@ function renderHistogram() {
         return;
     }
 
-    Plotly.newPlot(histogramElement, [trace], layout).then(() => {
-        histogramElement.on('plotly_click', (data) => {
-            const clickedBin = data.points[0];
-            const binStart = clickedBin.x0;
-            const binEnd = clickedBin.x1;
-            
-            // Highlight features that fall within this bin
-            geojson.features.forEach((feature, index) => {
-                const value = feature.properties[selectedProperty];
-                if (value >= binStart && value < binEnd) {
-                    toggleHighlight(index);
-                }
-            });
-        });
+    Plotly.newPlot(histogramElement, [trace], layout, config).then(() => {
+        histogramElement.on('plotly_selected', handleHistogramSelection);
     }).catch(error => {
         console.error('Error plotting histogram:', error);
     });
@@ -496,6 +560,7 @@ function renderHistogram() {
     // Update the map to reflect the new property
     updateMapProperty(selectedProperty);
 }
+
 
 function updateMapProperty(property) {
     if (workspaceData[currentWorkspace].geoJsonLayer) {

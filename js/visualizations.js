@@ -562,6 +562,7 @@ function renderHistogram() {
 }
 
 
+
 function updateMapProperty(property) {
     if (workspaceData[currentWorkspace].geoJsonLayer) {
         const geojson = workspaceData[currentWorkspace].geojson;

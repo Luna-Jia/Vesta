@@ -482,10 +482,13 @@ function resetAllHighlights() {
 
     // Reset histogram colors
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
-    if (histogramElement && histogramElement.data) {
-        Plotly.restyle(histogramElement, {
-            'marker.color': 'rgba(31, 119, 180, 0.7)'
-        });
+    if (histogramElement) {
+        const svg = d3.select(histogramElement).select("svg");
+        if (!svg.empty()) {
+            svg.selectAll("rect")
+                .classed("clicked", false)
+                .attr("fill", "steelblue");
+        }
     }
 }
 
@@ -495,6 +498,11 @@ function updateHistogramHighlight(selectedIndices) {
     
     svg.selectAll("rect")
         .attr("fill", function(d) {
+            // If this bar is already yellow (clicked), keep it yellow
+            if (d3.select(this).classed("clicked")) {
+                return "yellow";
+            }
+
             const binIndex = d3.select(this).attr("data-bin");
             const binSelectedCount = d.filter(v => selectedIndices.has(currentNumericValues.indexOf(v))).length;
             const binTotalCount = d.length;
@@ -521,6 +529,28 @@ function updateHistogramHighlight(selectedIndices) {
 
             return `url(#gradient-${binIndex})`;
         });
+}
+
+function handleHistogramBarClick(clickedBar) {
+    const svg = d3.select(clickedBar.closest("svg"));
+    
+    // Remove 'clicked' class from all bars
+    svg.selectAll("rect").classed("clicked", false);
+    
+    // Toggle 'clicked' class on the clicked bar
+    const isClicked = d3.select(clickedBar).classed("clicked");
+    d3.select(clickedBar).classed("clicked", !isClicked);
+    
+    // Update the fill color
+    svg.selectAll("rect")
+        .attr("fill", function() {
+            return d3.select(this).classed("clicked") ? "yellow" : "steelblue";
+        });
+    
+    // Trigger linked highlighting
+    const binData = d3.select(clickedBar).datum();
+    const selectedIndices = new Set(binData.map(v => currentNumericValues.indexOf(v)));
+    highlightSelectedFeatures(selectedIndices);
 }
 
 function handleHistogramSelection(eventData) {

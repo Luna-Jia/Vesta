@@ -581,7 +581,7 @@ function renderHistogram() {
         .domain([0, d3.max(bins, d => d.length)]);
 
     // Draw bars
-    svg.selectAll("rect")
+    const bars = svg.selectAll("rect")
         .data(bins)
         .enter()
         .append("rect")
@@ -591,6 +591,11 @@ function renderHistogram() {
         .attr("height", d => height - y(d.length))
         .attr("fill", "steelblue")
         .attr("data-bin", (d, i) => i);
+
+    // Add click event listener to bars
+    bars.on("click", function(event, d) {
+        handleHistogramBarClick(this);
+    });
 
     // Add X axis
     svg.append("g")
@@ -608,15 +613,6 @@ function renderHistogram() {
         .attr("text-anchor", "middle")
         .style("font-size", "16px")
         .text(`Histogram of ${selectedProperty}`);
-
-    // Add event listener for selection
-    svg.selectAll("rect")
-        .on("click", function(event, d) {
-            const binIndex = d3.select(this).attr("data-bin");
-            const selectedIndices = new Set(d.map(v => currentNumericValues.indexOf(v)));
-            highlightSelectedFeatures(selectedIndices);
-            updateHistogramHighlight(selectedIndices);
-        });
 
     // Update the map to reflect the new property
     updateMapProperty(selectedProperty);

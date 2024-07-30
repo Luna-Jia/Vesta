@@ -596,17 +596,26 @@ function renderHistogram() {
     bars.on("click", function(event, d) {
         const clickedBar = d3.select(this);
         const binIndex = clickedBar.attr("data-bin");
-        const binData = d;
         
-        // Toggle selection for all items in this bin
-        binData.forEach(value => {
-            const index = currentNumericValues.indexOf(value);
-            if (workspaceData[currentWorkspace].highlightedFeatures.has(index)) {
-                workspaceData[currentWorkspace].highlightedFeatures.delete(index);
+        if (event.ctrlKey || event.metaKey) {
+            // If Ctrl/Cmd is pressed, toggle selection for all items in this bin
+            d.forEach(value => {
+                const index = currentNumericValues.indexOf(value);
+                if (workspaceData[currentWorkspace].highlightedFeatures.has(index)) {
+                    workspaceData[currentWorkspace].highlightedFeatures.delete(index);
+                } else {
+                    workspaceData[currentWorkspace].highlightedFeatures.add(index);
+                }
+            });
+        } else {
+            // If Ctrl/Cmd is not pressed, toggle selection of the entire bin
+            if (clickedBar.classed("selected-bin")) {
+                clickedBar.classed("selected-bin", false);
             } else {
-                workspaceData[currentWorkspace].highlightedFeatures.add(index);
+                svg.selectAll("rect").classed("selected-bin", false);
+                clickedBar.classed("selected-bin", true);
             }
-        });
+        }
 
         // Update highlights
         updateHistogramHighlight(workspaceData[currentWorkspace].highlightedFeatures);
@@ -636,7 +645,6 @@ function renderHistogram() {
     // Initial highlight update
     updateHistogramHighlight(workspaceData[currentWorkspace].highlightedFeatures);
 }
-
 
 
 function updateMapProperty(property) {

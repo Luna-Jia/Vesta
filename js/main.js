@@ -508,8 +508,11 @@ function updateHistogramHighlight(selectedIndices) {
             // Remove any existing gradient
             svg.select(`#gradient-${binIndex}`).remove();
 
-            if (ratio > 0) {
-                // Create a new gradient
+            if (rect.classed("selected-bin")) {
+                // If the bin is selected, fill it entirely with yellow
+                rect.attr("fill", "yellow");
+            } else if (ratio > 0) {
+                // Create a new gradient for partial highlighting
                 const gradient = svg.append("defs")
                     .append("linearGradient")
                     .attr("id", `gradient-${binIndex}`)

@@ -497,37 +497,39 @@ function updateHistogramHighlight(selectedIndices) {
     const svg = d3.select(histogramElement).select("svg");
     
     svg.selectAll("rect")
-        .attr("fill", function(d) {
-            // If this bar is already yellow (clicked), keep it yellow
-            if (d3.select(this).classed("clicked")) {
-                return "yellow";
-            }
-
-            const binIndex = d3.select(this).attr("data-bin");
-            const binSelectedCount = d.filter(v => selectedIndices.has(currentNumericValues.indexOf(v))).length;
-            const binTotalCount = d.length;
+        .each(function(d) {
+            const rect = d3.select(this);
+            const binIndex = rect.attr("data-bin");
+            const binData = d;
+            const binSelectedCount = binData.filter(v => selectedIndices.has(currentNumericValues.indexOf(v))).length;
+            const binTotalCount = binData.length;
             const ratio = binSelectedCount / binTotalCount;
             
-            if (ratio === 0) return "steelblue";
-            
-            // Create a gradient for partial highlighting
-            const gradient = svg.append("defs")
-                .append("linearGradient")
-                .attr("id", `gradient-${binIndex}`)
-                .attr("x1", "0%")
-                .attr("x2", "0%")
-                .attr("y1", "0%")
-                .attr("y2", "100%");
+            // Remove any existing gradient
+            svg.select(`#gradient-${binIndex}`).remove();
 
-            gradient.append("stop")
-                .attr("offset", `${ratio * 100}%`)
-                .attr("stop-color", "yellow");
+            if (ratio > 0) {
+                // Create a new gradient
+                const gradient = svg.append("defs")
+                    .append("linearGradient")
+                    .attr("id", `gradient-${binIndex}`)
+                    .attr("x1", "0%")
+                    .attr("x2", "0%")
+                    .attr("y1", "100%")
+                    .attr("y2", "0%");
 
-            gradient.append("stop")
-                .attr("offset", `${ratio * 100}%`)
-                .attr("stop-color", "steelblue");
+                gradient.append("stop")
+                    .attr("offset", `${ratio * 100}%`)
+                    .attr("stop-color", "yellow");
 
-            return `url(#gradient-${binIndex})`;
+                gradient.append("stop")
+                    .attr("offset", `${ratio * 100}%`)
+                    .attr("stop-color", "steelblue");
+
+                rect.attr("fill", `url(#gradient-${binIndex})`);
+            } else {
+                rect.attr("fill", "steelblue");
+            }
         });
 }
 
@@ -579,11 +581,35 @@ function highlightSelectedFeatures(selectedIndices) {
 
     // Highlight selected features on map and table
     selectedIndices.forEach(index => {
-        toggleHighlight(index);
+        const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+        if (layer) {
+            if (mapSelectionStyle === 'fill') {
+                layer.setStyle({
+                    fillColor: mapHighlightColor,
+                    fillOpacity: dataOpacity,
+                    weight: 2,
+                    color: 'white',
+                    opacity: 1
+                });
+            } else { // 'outline'
+                layer.setStyle({
+                    fillColor: layer.feature.properties.originalStyle.fillColor,
+                    fillOpacity: dataOpacity,
+                    weight: mapHighlightWeight,
+                    color: mapHighlightColor,
+                    opacity: 1
+                });
+            }
+            layer.bringToFront();
+        }
+        highlightTableRow(index);
     });
 
     // Update workspaceData to reflect new selections
     workspaceData[currentWorkspace].highlightedFeatures = selectedIndices;
+
+    // Update histogram highlight
+    updateHistogramHighlight(selectedIndices);
 }
 // ------------------------------------------------------------------------------------------------------------------------------------
 

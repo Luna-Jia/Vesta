@@ -594,7 +594,23 @@ function renderHistogram() {
 
     // Add click event listener to bars
     bars.on("click", function(event, d) {
-        handleHistogramBarClick(this);
+        const clickedBar = d3.select(this);
+        const binIndex = clickedBar.attr("data-bin");
+        const binData = d;
+        
+        // Toggle selection for all items in this bin
+        binData.forEach(value => {
+            const index = currentNumericValues.indexOf(value);
+            if (workspaceData[currentWorkspace].highlightedFeatures.has(index)) {
+                workspaceData[currentWorkspace].highlightedFeatures.delete(index);
+            } else {
+                workspaceData[currentWorkspace].highlightedFeatures.add(index);
+            }
+        });
+
+        // Update highlights
+        updateHistogramHighlight(workspaceData[currentWorkspace].highlightedFeatures);
+        highlightSelectedFeatures(workspaceData[currentWorkspace].highlightedFeatures);
     });
 
     // Add X axis
@@ -616,6 +632,9 @@ function renderHistogram() {
 
     // Update the map to reflect the new property
     updateMapProperty(selectedProperty);
+
+    // Initial highlight update
+    updateHistogramHighlight(workspaceData[currentWorkspace].highlightedFeatures);
 }
 
 

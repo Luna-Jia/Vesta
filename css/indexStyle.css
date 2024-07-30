@@ -437,3 +437,26 @@
 .map-icon.active {
     background-color: rgba(173, 216, 230, 0.7); /* Light blue with some transparency */
 }
+
+.histogram svg {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.histogram .bar {
+    fill: steelblue;
+}
+
+.histogram .bar:hover {
+    fill: brown;
+}
+
+.histogram .axis-label {
+    font-size: 12px;
+}
+
+.selected-bin {
+    stroke: #000;
+    stroke-width: 2px;
+}

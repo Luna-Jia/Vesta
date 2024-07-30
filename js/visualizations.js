@@ -1,4 +1,5 @@
 let featurePopupsEnabled = false;
+let currentNumericValues = [];
 
 function toggleFeaturePopups(workspaceId) {
     const telescopeIcon = document.querySelector(`#telescopeIcon${workspaceId}`);
@@ -390,11 +391,11 @@ function selectHistogramProperty() {
 
     // Remove existing event listeners to prevent duplicates
     histogramPropertySelect.removeEventListener('change', renderHistogram);
-    histogramBinsInput.removeEventListener('change', renderHistogram);
+    histogramBinsInput.removeEventListener('input', renderHistogram);
 
     // Add new event listeners
     histogramPropertySelect.addEventListener('change', renderHistogram);
-    histogramBinsInput.addEventListener('change', renderHistogram);
+    histogramBinsInput.addEventListener('input', renderHistogram);
 
     // Render the initial histogram
     renderHistogram();
@@ -479,55 +480,11 @@ function highlightSelectedFeatures(selectedIndices) {
     // Update workspaceData to reflect new selections
     workspaceData[currentWorkspace].highlightedFeatures = selectedIndices;
 
+    // Update histogram highlight
     updateHistogramHighlight(selectedIndices);
 }
 // ------------------------------------------------------------------------------------------------------------------------------------
-
-function renderHistogram() {
-    if (!workspaceData[currentWorkspace].geojson) {
-        alert('Please upload and process a shapefile first.');
-        return;
-    }
-
-    const geojson = workspaceData[currentWorkspace].geojson;
-    const histogramPropertySelect = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
-    const histogramBinsInput = document.getElementById(`histogramBins${currentWorkspace}`);
-    
-    if (!histogramPropertySelect || !histogramBinsInput) {
-        console.error('Histogram property select or bins input not found');
-        return;
-    }
-
-    const selectedProperty = histogramPropertySelect.value;
-    let numBins = parseInt(histogramBinsInput.value, 10);
-
-    // Ensure numBins is a positive integer
-    if (isNaN(numBins) || numBins < 1) {
-        alert('Please enter a valid positive number for bins.');
-        return;
-    }
-    
-    // Extract values for the selected property
-    const values = geojson.features.map(f => f.properties[selectedProperty]);
-
-    // Filter out non-numeric values
-    const numericValues = values.filter(v => typeof v === 'number' && !isNaN(v));
-
-    if (numericValues.length === 0) {
-        alert('No numeric values found for the selected property.');
-        return;
-    }
-
-    // Calculate statistics
-    const count = numericValues.length;
-    const min = Math.min(...numericValues);
-    const max = Math.max(...numericValues);
-    const mean = numericValues.reduce((a, b) => a + b, 0) / count;
-
-    // Calculate bin width to ensure max value is included
-    const binWidth = (max - min) / (numBins - 1);  // Subtract 1 to include the max value
-
-    // Update statistics display with 4 decimal places, no rounding
+function updateStatisticsDisplay(count, min, max, mean) {
     const statElements = [
         { id: `statCount${currentWorkspace}`, value: count },
         { id: `statMin${currentWorkspace}`, value: min },
@@ -545,76 +502,149 @@ function renderHistogram() {
             console.warn(`Element with id ${id} not found`);
         }
     });
+}
 
-    // Calculate customdata
-    const binCounts = {};
-    numericValues.forEach((value, index) => {
-        const binIndex = Math.min(Math.floor((value - min) / binWidth), numBins - 1);
-        if (!binCounts[binIndex]) {
-            binCounts[binIndex] = { count: 0, indices: [] };
-        }
-        binCounts[binIndex].count++;
-        binCounts[binIndex].indices.push(index);
-    });
-
-    // Create the trace with explicit bin settings
-    const trace = {
-        x: numericValues,
-        type: 'histogram',
-        xbins: {
-            start: min,
-            end: max + binWidth,  // Add one more binWidth to include the max value
-            size: binWidth
-        },
-        autobinx: false,
-        marker: {
-            color: 'rgba(31, 119, 180, 0.7)'
-        },
-        customdata: Object.values(binCounts),
-    };
-
-    const layout = {
-        title: `Histogram of ${selectedProperty}`,
-        xaxis: { 
-            title: selectedProperty,
-            tickformat: '.4f',  // Format x-axis ticks to 4 decimal places
-            range: [min, max + binWidth]  // Ensure the x-axis includes the full range
-        },
-        yaxis: { title: 'Count' },
-        bargap: 0.1,
-        dragmode: 'select',  // Enable box select by default
-    };
-
-    const config = {
-        modeBarButtonsToAdd: [
-            {
-                name: 'toggleLassoSelect',
-                title: 'Toggle Lasso Select',
-                icon: Plotly.Icons.lasso,
-                click: function(gd) {
-                    const newDragMode = gd._fullLayout.dragmode === 'lasso' ? 'select' : 'lasso';
-                    Plotly.relayout(gd, {dragmode: newDragMode});
-                }
-            }
-        ]
-    };
-
-    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
-    if (!histogramElement) {
-        console.error(`Histogram element not found for workspace ${currentWorkspace}`);
+function renderHistogram() {
+    if (!workspaceData[currentWorkspace].geojson) {
+        alert('Please upload and process a shapefile first.');
         return;
     }
 
-    Plotly.newPlot(histogramElement, [trace], layout, config).then(() => {
-        histogramElement.on('plotly_selected', handleHistogramSelection);
-    }).catch(error => {
-        console.error('Error plotting histogram:', error);
+    const geojson = workspaceData[currentWorkspace].geojson;
+    const histogramPropertySelect = document.getElementById(`histogramPropertySelect${currentWorkspace}`);
+    const histogramBinsInput = document.getElementById(`histogramBins${currentWorkspace}`);
+    const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
+    
+    if (!histogramPropertySelect || !histogramBinsInput || !histogramElement) {
+        console.error('One or more required histogram elements not found');
+        return;
+    }
+
+    const selectedProperty = histogramPropertySelect.value;
+    let numBins = parseInt(histogramBinsInput.value, 10);
+
+    if (isNaN(numBins) || numBins < 1) {
+        alert('Please enter a valid positive number for bins.');
+        return;
+    }
+    
+    currentNumericValues = geojson.features.map(f => f.properties[selectedProperty])
+        .filter(v => typeof v === 'number' && !isNaN(v));
+
+    if (currentNumericValues.length === 0) {
+        alert('No numeric values found for the selected property.');
+        return;
+    }
+
+    // Calculate statistics
+    const count = currentNumericValues.length;
+    const min = Math.min(...currentNumericValues);
+    const max = Math.max(...currentNumericValues);
+    const mean = currentNumericValues.reduce((a, b) => a + b, 0) / count;
+
+    // Update statistics display
+    updateStatisticsDisplay(count, min, max, mean);
+
+    // Clear existing content
+    histogramElement.innerHTML = '';
+
+    // Set up dimensions
+    const margin = {top: 20, right: 20, bottom: 30, left: 40};
+    const width = histogramElement.clientWidth - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
+
+    // Create SVG
+    const svg = d3.select(histogramElement)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Create scales
+    const x = d3.scaleLinear()
+        .domain([min, max])
+        .range([0, width]);
+
+    const histogram = d3.histogram()
+        .value(d => d)
+        .domain(x.domain())
+        .thresholds(() => {
+            const step = (max - min) / numBins;
+            return d3.range(numBins).map(i => min + i * step);
+        });
+
+    const bins = histogram(currentNumericValues);
+
+    const y = d3.scaleLinear()
+        .range([height, 0])
+        .domain([0, d3.max(bins, d => d.length)]);
+
+    // Draw bars
+    const bars = svg.selectAll("rect")
+        .data(bins)
+        .enter()
+        .append("rect")
+        .attr("x", d => x(d.x0))
+        .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+        .attr("y", d => y(d.length))
+        .attr("height", d => height - y(d.length))
+        .attr("fill", "steelblue")
+        .attr("data-bin", (d, i) => i);
+
+    // Add click event listener to bars
+    bars.on("click", function(event, d) {
+        const clickedBar = d3.select(this);
+        const binIndex = clickedBar.attr("data-bin");
+        
+        if (event.ctrlKey || event.metaKey) {
+            // If Ctrl/Cmd is pressed, toggle selection for all items in this bin
+            d.forEach(value => {
+                const index = currentNumericValues.indexOf(value);
+                if (workspaceData[currentWorkspace].highlightedFeatures.has(index)) {
+                    workspaceData[currentWorkspace].highlightedFeatures.delete(index);
+                } else {
+                    workspaceData[currentWorkspace].highlightedFeatures.add(index);
+                }
+            });
+        } else {
+            // If Ctrl/Cmd is not pressed, toggle selection of the entire bin
+            if (clickedBar.classed("selected-bin")) {
+                clickedBar.classed("selected-bin", false);
+            } else {
+                svg.selectAll("rect").classed("selected-bin", false);
+                clickedBar.classed("selected-bin", true);
+            }
+        }
+
+        // Update highlights
+        updateHistogramHighlight(workspaceData[currentWorkspace].highlightedFeatures);
+        highlightSelectedFeatures(workspaceData[currentWorkspace].highlightedFeatures);
     });
+
+    // Add X axis
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x));
+
+    // Add Y axis
+    svg.append("g")
+        .call(d3.axisLeft(y));
+
+    // Add title
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text(`Histogram of ${selectedProperty}`);
 
     // Update the map to reflect the new property
     updateMapProperty(selectedProperty);
-}
 
+    // Initial highlight update
+    updateHistogramHighlight(workspaceData[currentWorkspace].highlightedFeatures);
+}
 
 
 function updateMapProperty(property) {

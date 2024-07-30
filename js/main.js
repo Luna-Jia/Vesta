@@ -16,8 +16,8 @@ let workspaceData = {
 
 let highlightColor = '#e6e6fa'; // Light purple
 let mapHighlightColor = '#9370db'; // Medium purple
-let mapHighlightWeight = 5;
-let mapSelectionStyle = 'fill'; // 'fill' or 'outline'
+let mapHighlightWeight = 2;
+let mapSelectionStyle = 'outline'; // 'fill' or 'outline'
 let dataOpacity = 0.7;
 
 //-------------------------------------------------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ function openSettingsModal() {
     document.getElementById('dataOpacity').value = dataOpacity;
 
     // Position the modal near the settings button
-    const settingsButton = document.getElementById('settingsButton');
+    const settingsButton = document.getElementById('settingsIcon1');
     const buttonRect = settingsButton.getBoundingClientRect();
     const modalContent = modal.querySelector('.modal-content');
     modalContent.style.position = 'absolute';
@@ -482,27 +482,80 @@ function resetAllHighlights() {
 
     // Reset histogram colors
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
-    if (histogramElement && histogramElement.data) {
-        Plotly.restyle(histogramElement, {
-            'marker.color': 'rgba(31, 119, 180, 0.7)'
-        });
+    if (histogramElement) {
+        const svg = d3.select(histogramElement).select("svg");
+        if (!svg.empty()) {
+            svg.selectAll("rect")
+                .classed("clicked", false)
+                .attr("fill", "steelblue");
+        }
     }
 }
 
 function updateHistogramHighlight(selectedIndices) {
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
-    if (histogramElement && histogramElement.data) {
-        const colors = histogramElement.data[0].customdata.map(binData => {
-            const binSelectedCount = binData.indices.filter(index => selectedIndices.has(index)).length;
-            const binTotalCount = binData.count;
+    const svg = d3.select(histogramElement).select("svg");
+    
+    svg.selectAll("rect")
+        .each(function(d) {
+            const rect = d3.select(this);
+            const binIndex = rect.attr("data-bin");
+            const binData = d;
+            const binSelectedCount = binData.filter(v => selectedIndices.has(currentNumericValues.indexOf(v))).length;
+            const binTotalCount = binData.length;
             const ratio = binSelectedCount / binTotalCount;
-            return `rgba(31, 119, 180, ${0.7 + (0.3 * ratio)})`;
-        });
+            
+            // Remove any existing gradient
+            svg.select(`#gradient-${binIndex}`).remove();
 
-        Plotly.restyle(histogramElement, {
-            'marker.color': [colors]
+            if (rect.classed("selected-bin")) {
+                // If the bin is selected, fill it entirely with yellow
+                rect.attr("fill", "yellow");
+            } else if (ratio > 0) {
+                // Create a new gradient for partial highlighting
+                const gradient = svg.append("defs")
+                    .append("linearGradient")
+                    .attr("id", `gradient-${binIndex}`)
+                    .attr("x1", "0%")
+                    .attr("x2", "0%")
+                    .attr("y1", "100%")
+                    .attr("y2", "0%");
+
+                gradient.append("stop")
+                    .attr("offset", `${ratio * 100}%`)
+                    .attr("stop-color", "yellow");
+
+                gradient.append("stop")
+                    .attr("offset", `${ratio * 100}%`)
+                    .attr("stop-color", "steelblue");
+
+                rect.attr("fill", `url(#gradient-${binIndex})`);
+            } else {
+                rect.attr("fill", "steelblue");
+            }
         });
-    }
+}
+
+function handleHistogramBarClick(clickedBar) {
+    const svg = d3.select(clickedBar.closest("svg"));
+    
+    // Remove 'clicked' class from all bars
+    svg.selectAll("rect").classed("clicked", false);
+    
+    // Toggle 'clicked' class on the clicked bar
+    const isClicked = d3.select(clickedBar).classed("clicked");
+    d3.select(clickedBar).classed("clicked", !isClicked);
+    
+    // Update the fill color
+    svg.selectAll("rect")
+        .attr("fill", function() {
+            return d3.select(this).classed("clicked") ? "yellow" : "steelblue";
+        });
+    
+    // Trigger linked highlighting
+    const binData = d3.select(clickedBar).datum();
+    const selectedIndices = new Set(binData.map(v => currentNumericValues.indexOf(v)));
+    highlightSelectedFeatures(selectedIndices);
 }
 
 function handleHistogramSelection(eventData) {
@@ -514,15 +567,15 @@ function handleHistogramSelection(eventData) {
     const selectedIndices = new Set();
 
     eventData.points.forEach(point => {
-        if (point.customdata) {
-            const binData = point.customdata;
-            binData.indices.forEach(index => selectedIndices.add(index));
+        if (point.customdata && point.customdata.indices) {
+            point.customdata.indices.forEach(index => selectedIndices.add(index));
         } else {
-            console.warn('Customdata not found for histogram bar', point);
+            console.warn('Customdata or indices not found for histogram bar', point);
         }
     });
 
     highlightSelectedFeatures(selectedIndices);
+    updateHistogramHighlight(selectedIndices);
 }
 
 function highlightSelectedFeatures(selectedIndices) {
@@ -531,11 +584,35 @@ function highlightSelectedFeatures(selectedIndices) {
 
     // Highlight selected features on map and table
     selectedIndices.forEach(index => {
-        toggleHighlight(index);
+        const layer = workspaceData[currentWorkspace].geoJsonLayer.getLayers()[index];
+        if (layer) {
+            if (mapSelectionStyle === 'fill') {
+                layer.setStyle({
+                    fillColor: mapHighlightColor,
+                    fillOpacity: dataOpacity,
+                    weight: 2,
+                    color: 'white',
+                    opacity: 1
+                });
+            } else { // 'outline'
+                layer.setStyle({
+                    fillColor: layer.feature.properties.originalStyle.fillColor,
+                    fillOpacity: dataOpacity,
+                    weight: mapHighlightWeight,
+                    color: mapHighlightColor,
+                    opacity: 1
+                });
+            }
+            layer.bringToFront();
+        }
+        highlightTableRow(index);
     });
 
     // Update workspaceData to reflect new selections
     workspaceData[currentWorkspace].highlightedFeatures = selectedIndices;
+
+    // Update histogram highlight
+    updateHistogramHighlight(selectedIndices);
 }
 // ------------------------------------------------------------------------------------------------------------------------------------
 

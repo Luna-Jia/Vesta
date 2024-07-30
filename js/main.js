@@ -491,18 +491,36 @@ function resetAllHighlights() {
 
 function updateHistogramHighlight(selectedIndices) {
     const histogramElement = document.getElementById(`histogram${currentWorkspace}`);
-    if (histogramElement && histogramElement.data) {
-        const colors = histogramElement.data[0].customdata.map(binData => {
-            const binSelectedCount = binData.indices.filter(index => selectedIndices.has(index)).length;
-            const binTotalCount = binData.count;
+    const svg = d3.select(histogramElement).select("svg");
+    
+    svg.selectAll("rect")
+        .attr("fill", function(d) {
+            const binIndex = d3.select(this).attr("data-bin");
+            const binSelectedCount = d.filter(v => selectedIndices.has(currentNumericValues.indexOf(v))).length;
+            const binTotalCount = d.length;
             const ratio = binSelectedCount / binTotalCount;
-            return `rgba(31, 119, 180, ${0.7 + (0.3 * ratio)})`;
-        });
+            
+            if (ratio === 0) return "steelblue";
+            
+            // Create a gradient for partial highlighting
+            const gradient = svg.append("defs")
+                .append("linearGradient")
+                .attr("id", `gradient-${binIndex}`)
+                .attr("x1", "0%")
+                .attr("x2", "0%")
+                .attr("y1", "0%")
+                .attr("y2", "100%");
 
-        Plotly.restyle(histogramElement, {
-            'marker.color': [colors]
+            gradient.append("stop")
+                .attr("offset", `${ratio * 100}%`)
+                .attr("stop-color", "yellow");
+
+            gradient.append("stop")
+                .attr("offset", `${ratio * 100}%`)
+                .attr("stop-color", "steelblue");
+
+            return `url(#gradient-${binIndex})`;
         });
-    }
 }
 
 function handleHistogramSelection(eventData) {
@@ -514,15 +532,15 @@ function handleHistogramSelection(eventData) {
     const selectedIndices = new Set();
 
     eventData.points.forEach(point => {
-        if (point.customdata) {
-            const binData = point.customdata;
-            binData.indices.forEach(index => selectedIndices.add(index));
+        if (point.customdata && point.customdata.indices) {
+            point.customdata.indices.forEach(index => selectedIndices.add(index));
         } else {
-            console.warn('Customdata not found for histogram bar', point);
+            console.warn('Customdata or indices not found for histogram bar', point);
         }
     });
 
     highlightSelectedFeatures(selectedIndices);
+    updateHistogramHighlight(selectedIndices);
 }
 
 function highlightSelectedFeatures(selectedIndices) {
